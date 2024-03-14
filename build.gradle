@@ -1,19 +1,51 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'com.diffplug.spotless' version '6.24.0'
 }
 
 group = 'diruptio'
-version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation platform("org.junit:junit-bom:${junit_bom_version}")
+    testImplementation "org.junit.jupiter:junit-jupiter"
 }
 
 test {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    archivesBaseName = 'Spikedog'
+    manifest {
+        attributes 'Implementation-Title': 'Spikedog',
+                   'Implementation-Version': version,
+                   'Main-Class': 'diruptio.spikedog.Spikedog'
+    }
+}
+
+application {
+    mainClass = jar.manifest.attributes['Main-Class'] as String
+}
+
+spotless {
+    java {
+        target '**/src/**/*.java'
+        googleJavaFormat().aosp()
+        removeUnusedImports()
+        indentWithSpaces()
+        endWithNewline()
+    }
 }

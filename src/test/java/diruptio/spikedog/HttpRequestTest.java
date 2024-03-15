@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 public class HttpRequestTest {
     @Test
     public void testParse() {
-        String request = """
+        String request =
+                """
                 GET /test HTTP/1.1
                 Host: localhost:8080
                 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0
@@ -25,7 +26,8 @@ public class HttpRequestTest {
 
     @Test
     public void testParseWithBadRequests() {
-        String request = """
+        String request =
+                """
                 GET HTTP/1.1
                 Host: localhost:8080
                 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0
@@ -33,7 +35,8 @@ public class HttpRequestTest {
         HttpRequest httpRequest = HttpRequest.parse(request);
         Assertions.assertNull(httpRequest);
 
-        request = """
+        request =
+                """
                 GET /test HTTP/1.1
                 Host=localhost:8080
                 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0

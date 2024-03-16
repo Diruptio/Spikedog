@@ -51,7 +51,8 @@ public class HttpRequest {
         for (String parameter : parameters.split("&")) {
             if (parameter.contains("=")) {
                 String[] pieces = parameter.split("=", 2);
-                request.parameters.put(pieces[0], URLDecoder.decode(pieces[1], StandardCharsets.UTF_8));
+                request.parameters.put(
+                        pieces[0], URLDecoder.decode(pieces[1], StandardCharsets.UTF_8));
             } else request.parameters.put(parameter, "");
         }
     }
@@ -94,7 +95,8 @@ public class HttpRequest {
             }
             request.content = content.toString();
             if (request.getHeader("Content-Type") != null
-                    && request.getHeader("Content-Type").equals("application/x-www-form-urlencoded")) {
+                    && request.getHeader("Content-Type")
+                            .equals("application/x-www-form-urlencoded")) {
                 decodeParameters(request.content, request);
             }
         } catch (Exception ignored) {

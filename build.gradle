@@ -38,6 +38,8 @@ jar {
 
 application {
     mainClass = jar.manifest.attributes['Main-Class'] as String
+    run.workingDir = 'run'
+    run.workingDir.mkdirs()
 }
 
 spotless {

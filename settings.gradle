@@ -1,3 +1,4 @@
 rootProject.name = 'Spikedog'
 include 'example'
+include 'reload'
 

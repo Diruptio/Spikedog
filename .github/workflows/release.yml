@@ -1,0 +1,29 @@
+on:
+  push:
+    tags:
+    - '*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    name: Create & Upload Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'microsoft'
+          java-version: 11
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Create Release
+        run: gh release create ${{ github.ref_name }} --generate-notes
+      - name: Upload Artifacts
+        run: |
+          directories=("build/libs/*" "reload/build/libs/*");
+          for file in "${directories[@]}"; do gh release upload $file; done;

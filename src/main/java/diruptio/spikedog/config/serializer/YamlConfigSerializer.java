@@ -1,9 +1,8 @@
 package diruptio.spikedog.config.serializer;
 
+import java.util.Map;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-
-import java.util.Map;
 
 public class YamlConfigSerializer implements ConfigSerializer {
     @Override

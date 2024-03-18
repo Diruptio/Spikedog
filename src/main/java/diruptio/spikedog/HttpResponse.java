@@ -2,6 +2,8 @@ package diruptio.spikedog;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HttpResponse {
     private String httpVersion = "HTTP/1.1";
@@ -10,11 +12,11 @@ public class HttpResponse {
     private Map<String, String> headers = new HashMap<>();
     private String content = "";
 
-    public String getHttpVersion() {
+    public @NotNull String getHttpVersion() {
         return httpVersion;
     }
 
-    public void setHttpVersion(String httpVersion) {
+    public void setHttpVersion(@NotNull String httpVersion) {
         this.httpVersion = httpVersion;
     }
 
@@ -26,40 +28,40 @@ public class HttpResponse {
         this.statusCode = statusCode;
     }
 
-    public String getStatusMessage() {
+    public @NotNull String getStatusMessage() {
         return statusMessage;
     }
 
-    public void setStatusMessage(String statusMessage) {
+    public void setStatusMessage(@NotNull String statusMessage) {
         this.statusMessage = statusMessage;
     }
 
-    public void setStatus(int statusCode, String statusMessage) {
+    public void setStatus(int statusCode, @NotNull String statusMessage) {
         this.statusMessage = statusMessage;
         this.statusCode = statusCode;
     }
 
-    public Map<String, String> getHeaders() {
+    public @NotNull Map<String, String> getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
+    public void setHeaders(@NotNull Map<String, String> headers) {
         this.headers = headers;
     }
 
-    public String getHeader(String key) {
+    public @Nullable String getHeader(@NotNull String key) {
         return headers.get(key);
     }
 
-    public void setHeader(String key, String value) {
+    public void setHeader(@NotNull String key, @NotNull String value) {
         headers.put(key, value);
     }
 
-    public String getContent() {
+    public @NotNull String getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(@NotNull String content) {
         this.content = content;
     }
 

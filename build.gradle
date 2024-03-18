@@ -4,13 +4,14 @@ plugins {
     id 'com.diffplug.spotless' version '6.24.0'
 }
 
-group = 'diruptio'
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    implementation "org.jetbrains:annotations:${jetbrains_annotations_version}"
+    implementation "com.google.code.gson:gson:${gson_version}"
+    implementation "org.yaml:snakeyaml:${snakeyaml_version}"
     testImplementation platform("org.junit:junit-bom:${junit_bom_version}")
     testImplementation "org.junit.jupiter:junit-jupiter"
 }

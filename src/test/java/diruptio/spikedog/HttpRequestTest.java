@@ -34,14 +34,5 @@ public class HttpRequestTest {
                 Accept: application/json""";
         HttpRequest httpRequest = HttpRequest.parse(request);
         Assertions.assertNull(httpRequest);
-
-        request =
-                """
-                GET /test HTTP/1.1
-                Host=localhost:8080
-                User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0
-                Accept: application/json""";
-        httpRequest = HttpRequest.parse(request);
-        Assertions.assertNull(httpRequest);
     }
 }

@@ -6,13 +6,18 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class ServeThread extends Thread {
+    private static final List<ServeThread> serveThreads = new ArrayList<>();
     private final SocketChannel client;
+    private final List<Runnable> afterServe = new ArrayList<>();
 
     public ServeThread(SocketChannel client) {
         this.client = client;
+        serveThreads.add(this);
     }
 
     @Override
@@ -26,7 +31,8 @@ public class ServeThread extends Thread {
             if (!client.isOpen()) return;
             client.read(buffer);
             buffer.flip();
-            HttpRequest request = HttpRequest.parse(new String(buffer.array(), StandardCharsets.UTF_8));
+            HttpRequest request =
+                    HttpRequest.parse(new String(buffer.array(), StandardCharsets.UTF_8));
             buffer.clear();
 
             HttpResponse response = new HttpResponse();
@@ -42,7 +48,7 @@ public class ServeThread extends Thread {
                 for (Spikedog.Servlet servlet : Spikedog.getServlets()) {
                     if (servlet.path().equals(request.getPath())
                             && (servlet.methods().length == 0
-                            || List.of(servlet.methods()).contains(request.getMethod()))) {
+                                    || List.of(servlet.methods()).contains(request.getMethod()))) {
                         found = true;
                         try {
                             servlet.servlet().accept(request, response);
@@ -72,5 +78,17 @@ public class ServeThread extends Thread {
         } catch (Throwable exception) {
             exception.printStackTrace(System.err);
         }
+        try {
+            afterServe.forEach(Runnable::run);
+        } catch (Throwable exception) {
+            exception.printStackTrace(System.err);
+        }
+        serveThreads.remove(this);
+    }
+
+    public static void runAfterServe(@NotNull Runnable runnable) {
+        serveThreads.stream()
+                .filter(thread -> thread == Thread.currentThread())
+                .forEach(thread -> thread.afterServe.add(runnable));
     }
 }

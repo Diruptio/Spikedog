@@ -6,6 +6,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class HttpRequest {
     private String method;
@@ -15,35 +17,35 @@ public class HttpRequest {
     private final Map<String, String> parameters = new HashMap<>();
     private String content;
 
-    public String getMethod() {
+    public @NotNull String getMethod() {
         return method;
     }
 
-    public String getPath() {
+    public @NotNull String getPath() {
         return path;
     }
 
-    public String getHttpVersion() {
+    public @NotNull String getHttpVersion() {
         return httpVersion;
     }
 
-    public Map<String, String> getHeaders() {
+    public @NotNull Map<String, String> getHeaders() {
         return headers;
     }
 
-    public String getHeader(String key) {
+    public @Nullable String getHeader(@NotNull String key) {
         return headers.get(key);
     }
 
-    public Map<String, String> getParameters() {
+    public @NotNull Map<String, String> getParameters() {
         return parameters;
     }
 
-    public String getParameter(String key) {
+    public @Nullable String getParameter(@NotNull String key) {
         return parameters.get(key);
     }
 
-    public String getContent() {
+    public @NotNull String getContent() {
         return content;
     }
 
@@ -66,7 +68,7 @@ public class HttpRequest {
         request.path = URLDecoder.decode(path, StandardCharsets.UTF_8);
     }
 
-    public static HttpRequest parse(String str) {
+    public static @Nullable HttpRequest parse(@NotNull String str) {
         HttpRequest request = new HttpRequest();
 
         BufferedReader reader = new BufferedReader(new StringReader(str));
@@ -90,13 +92,10 @@ public class HttpRequest {
 
             StringBuilder content = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append("\r\n");
-            }
+            while ((line = reader.readLine()) != null) content.append(line).append("\r\n");
             request.content = content.toString();
-            if (request.getHeader("Content-Type") != null
-                    && request.getHeader("Content-Type")
-                            .equals("application/x-www-form-urlencoded")) {
+            String contentType = request.getHeader("Content-Type");
+            if (contentType != null && contentType.equals("application/x-www-form-urlencoded")) {
                 decodeParameters(request.content, request);
             }
         } catch (Exception ignored) {

@@ -4,13 +4,13 @@ import diruptio.spikedog.Listener;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.Spikedog;
 
-public class SpikedogListener implements Listener {
+public class ExampleListener implements Listener {
     @Override
     public void onLoad(Module self) {
         System.out.println("Loading Spikedog example module");
 
         // Hello World servlet
-        Spikedog.addServlet("/hello-world", new HelloWorldServlet());
+        Spikedog.addServlet("/hello-world", new ExampleServlet());
 
         // Only POST servlet:
         // This servlet only accepts POST requests

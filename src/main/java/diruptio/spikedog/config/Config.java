@@ -3,11 +3,10 @@ package diruptio.spikedog.config;
 import diruptio.spikedog.config.serializer.ConfigSerializer;
 import diruptio.spikedog.config.serializer.JsonConfigSerializer;
 import diruptio.spikedog.config.serializer.YamlConfigSerializer;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
 
 public class Config extends ConfigSection {
     private final Path file;

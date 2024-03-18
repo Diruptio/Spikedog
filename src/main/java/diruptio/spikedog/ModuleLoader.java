@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 public class ModuleLoader {
     private static final List<Module> modules = new ArrayList<>();
 
-    public static void loadModules(Path directory) throws IOException {
+    public static void loadModules(@NotNull Path directory) throws IOException {
         if (!Files.exists(directory)) Files.createDirectories(directory);
         else if (!Files.isDirectory(directory))
             throw new IOException(directory + " is not a directory");
@@ -42,7 +43,8 @@ public class ModuleLoader {
         }
     }
 
-    public static Module loadModule(Path file) throws IOException, ClassNotFoundException {
+    public static @NotNull Module loadModule(@NotNull Path file)
+            throws IOException, ClassNotFoundException {
         URL[] urls = {new URL("jar:file:" + file + "!/")};
         try (JarFile jarFile = new JarFile(file.toFile());
                 URLClassLoader classLoader = URLClassLoader.newInstance(urls)) {
@@ -88,7 +90,7 @@ public class ModuleLoader {
         modules.clear();
     }
 
-    public static List<Module> getModules() {
+    public static @NotNull List<Module> getModules() {
         return modules;
     }
 }

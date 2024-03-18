@@ -1,7 +1,6 @@
 package diruptio.spikedog.config.serializer;
 
 import com.google.gson.GsonBuilder;
-
 import java.util.Map;
 
 public class JsonConfigSerializer implements ConfigSerializer {

@@ -6,9 +6,12 @@ dependencies {
     compileOnly project(':')
 }
 
-jar.doLast {
-    copy {
-        from jar.archiveFile
-        into rootProject.file('run/modules')
+jar {
+    archiveFileName = 'reload.jar'
+    doLast {
+        copy {
+            from jar.archiveFile
+            into rootProject.file('run/modules')
+        }
     }
 }

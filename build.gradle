@@ -29,12 +29,12 @@ jar {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    archivesBaseName = 'Spikedog'
     manifest {
         attributes 'Implementation-Title': 'Spikedog',
                    'Implementation-Version': version,
                    'Main-Class': 'diruptio.spikedog.Spikedog'
     }
+    archiveFileName = 'Spikedog.jar'
 }
 
 application {

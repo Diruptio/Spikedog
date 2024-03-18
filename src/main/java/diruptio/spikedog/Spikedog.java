@@ -1,7 +1,6 @@
 package diruptio.spikedog;
 
 import java.net.InetSocketAddress;
-import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,8 +15,7 @@ public class Spikedog {
     private static final List<Servlet> servlets = new ArrayList<>();
 
     public static void main(String[] args) {
-        try (Selector selector = Selector.open();
-                ServerSocketChannel serverSocket = ServerSocketChannel.open()) {
+        try (ServerSocketChannel serverSocket = ServerSocketChannel.open()) {
             // Start server
             serverSocket.bind(new InetSocketAddress(BIND_ADDRESS, PORT));
             System.out.printf("Spikedog started on %s:%s\n", BIND_ADDRESS, PORT);

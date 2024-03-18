@@ -20,3 +20,31 @@ Spikedog is a lightweight open source server for HTTP services.
    sudo chmod +x /etc/init.d/spikedog
    sudo chown root:root /etc/init.d/spikedog
    ```
+## Development
+Maven Repository:
+```xml
+<repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+</repository>
+```
+Maven Dependency:
+```xml
+<dependency>
+  <groupId>com.github.Diruptio</groupId>
+  <artifactId>Spikedog</artifactId>
+  <version>VERSION</version>
+</dependency>
+```
+Gradle Repository:
+```groovy
+repositories {
+    maven { url = "https://jitpack.io" }
+}
+```
+Gradle Dependency:
+```groovy
+dependencies {
+    implementation 'com.github.Diruptio:Spikedog:VERSION'
+}
+```

@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'application'
     id 'com.diffplug.spotless' version '6.24.0'
+    id 'maven-publish'
 }
 
 repositories {
@@ -50,6 +51,14 @@ spotless {
         removeUnusedImports()
         indentWithSpaces()
         endWithNewline()
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
     }
 }
 

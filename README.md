@@ -1,6 +1,10 @@
 Made in Germany <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" width="20"> with love <font color="red">❤</font> and beer 🍺.
 # Spikedog
 Spikedog is a lightweight open source server for HTTP services.
+- [x] HTTP/1.0
+- [x] HTTP/1.1
+- [ ] HTTP/2
+- [ ] HTTP/3
 ## Install
 ### Linux (bash)
 1. Install Java 17 or higher

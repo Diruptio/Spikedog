@@ -1,6 +1,4 @@
-on:
-  create:
-    release:
+on: release
 
 permissions:
   contents: write

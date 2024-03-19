@@ -16,7 +16,7 @@ public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
             byte[] bytes = password.getBytes(StandardCharsets.UTF_8);
             String auth = "Basic " + Base64.getEncoder().encodeToString(bytes);
 
-            if (auth.equals(request.getHeader("Authorization"))) {
+            if (!auth.equals(request.getHeader("Authorization"))) {
                 // Unauthorized
                 response.setStatus(401, "Unauthorized");
                 response.setHeader("Content-Type", "text/html");

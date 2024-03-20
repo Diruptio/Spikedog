@@ -67,7 +67,7 @@ public class ServeThread extends Thread {
                 }
             }
 
-            response.setHeader("Server", "Spikedog");
+            response.setHeader("Server", "Spikedog " + BuildConstants.VERSION);
             buffer = ByteBuffer.wrap(response.toString().getBytes(StandardCharsets.UTF_8));
             while (buffer.hasRemaining()) client.write(buffer);
             buffer.clear();

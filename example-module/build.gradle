@@ -1,0 +1,11 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    compileOnly project(':')
+}
+
+jar {
+    archiveFileName = 'example-module.jar'
+}

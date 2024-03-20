@@ -38,6 +38,14 @@ jar {
     archiveFileName = 'Spikedog.jar'
 }
 
+def generateSources = tasks.register('generateSources', Copy) {
+    from file('src/main/templates')
+    into layout.buildDirectory.dir('generated/sources/templates')
+    expand 'version': version
+}
+sourceSets.main.java.srcDir(generateSources.map { it.outputs })
+compileJava.dependsOn generateSources
+
 application {
     mainClass = jar.manifest.attributes['Main-Class'] as String
     run.workingDir = 'run'

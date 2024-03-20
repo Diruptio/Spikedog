@@ -4,6 +4,6 @@ pluginManagement {
     }
 }
 rootProject.name = 'Spikedog'
-include 'example'
-include 'reload'
+include 'example-module'
+include 'reload-module'
 

@@ -7,7 +7,7 @@ dependencies {
 }
 
 jar {
-    archiveFileName = 'reload.jar'
+    archiveFileName = 'reload-module.jar'
     doLast {
         copy {
             from jar.archiveFile

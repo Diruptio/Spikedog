@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    compileOnly project(':')
+}
+
+jar {
+    archiveFileName = 'info-module.jar'
+    doLast {
+        copy {
+            from jar.archiveFile
+            into rootProject.file('run/modules')
+        }
+    }
+}

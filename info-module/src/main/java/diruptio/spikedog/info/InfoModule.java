@@ -1,16 +1,16 @@
-package diruptio.spikedog.reload;
+package diruptio.spikedog.info;
 
 import diruptio.spikedog.*;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.config.Config;
 import java.nio.file.Path;
 
-public class ReloadModule implements Listener {
+public class InfoModule implements Listener {
     private static Config config;
 
     @Override
     public void onLoad(Module self) {
-        Path configFile = self.file().resolveSibling("reload").resolve("config.yml");
+        Path configFile = self.file().resolveSibling("info").resolve("config.yml");
         config = new Config(configFile, Config.Type.YAML);
         if (!config.contains("authorization")) {
             config.set("authorization", false);
@@ -21,7 +21,7 @@ public class ReloadModule implements Listener {
             config.save();
         }
 
-        Spikedog.addServlet("/reload", new ReloadServlet());
+        Spikedog.addServlet("/info", new InfoServlet());
     }
 
     public static Config getConfig() {

@@ -67,6 +67,7 @@ public class ServeThread extends Thread {
                 }
             }
 
+            response.setHeader("Content-Length", String.valueOf(response.getContent().length()));
             response.setHeader("Server", "Spikedog " + BuildConstants.VERSION);
             buffer = ByteBuffer.wrap(response.toString().getBytes(StandardCharsets.UTF_8));
             while (buffer.hasRemaining()) client.write(buffer);

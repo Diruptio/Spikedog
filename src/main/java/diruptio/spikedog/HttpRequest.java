@@ -1,11 +1,9 @@
 package diruptio.spikedog;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +33,10 @@ public class HttpRequest {
 
     public @Nullable String getHeader(@NotNull String key) {
         return headers.get(key);
+    }
+
+    public @NotNull String getHeader(@NotNull String key, @NotNull String defaultValue) {
+        return headers.getOrDefault(key, defaultValue);
     }
 
     public @NotNull Map<String, String> getParameters() {
@@ -68,39 +70,62 @@ public class HttpRequest {
         request.path = URLDecoder.decode(path, StandardCharsets.UTF_8);
     }
 
-    public static @Nullable HttpRequest parse(@NotNull String str) {
-        HttpRequest request = new HttpRequest();
+    private static long readLines(List<String> lines, String content) {
+        if (!lines.isEmpty()) content = lines.remove(lines.size() - 1) + content;
+        lines.addAll(Arrays.asList(content.split("\r\n")));
+        return content.length();
+    }
 
-        BufferedReader reader = new BufferedReader(new StringReader(str));
-
+    public static @Nullable HttpRequest read(@NotNull Function<Integer, String> reader) {
         try {
-            String[] requestLine = reader.readLine().split(" ");
-            if (requestLine.length == 3) {
-                request.method = requestLine[0];
-                decodePath(requestLine[1], request);
-                request.httpVersion = requestLine[2];
+            HttpRequest request = new HttpRequest();
+            List<String> lines = new ArrayList<>();
+            long length = readLines(lines, reader.apply(1024));
+            long processedLength = 0;
+            long contentLength;
+
+            String requestLine = lines.remove(0);
+            processedLength += requestLine.length() + 2;
+            String[] pieces = requestLine.split(" ");
+            if (pieces.length == 3) {
+                request.method = pieces[0];
+                decodePath(pieces[1], request);
+                request.httpVersion = pieces[2];
             } else return null;
 
-            for (String header = reader.readLine();
+            for (String header = lines.remove(0);
                     header != null && !header.isBlank();
-                    header = reader.readLine()) {
+                    header = lines.remove(0)) {
+                processedLength += header.length() + 2;
                 if (header.contains(": ")) {
-                    String[] pieces = header.split(": ", 2);
+                    pieces = header.split(": ", 2);
                     request.headers.put(pieces[0], pieces[1]);
+                    if (pieces[0].equalsIgnoreCase("Content-Length")) {
+                        contentLength = Long.parseLong(pieces[1]);
+                        if (length - processedLength < contentLength) {
+                            length +=
+                                    readLines(
+                                            lines,
+                                            reader.apply(
+                                                    (int)
+                                                            (contentLength
+                                                                    - (length - processedLength))));
+                        }
+                    }
                 }
             }
 
             StringBuilder content = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) content.append(line).append("\r\n");
+            while (!lines.isEmpty()) content.append(lines.remove(0)).append("\r\n");
             request.content = content.toString();
-            String contentType = request.getHeader("Content-Type");
-            if (contentType != null && contentType.equals("application/x-www-form-urlencoded")) {
+            String contentType = request.getHeader("Content-Type", "");
+            if (contentType.equals("application/x-www-form-urlencoded")) {
                 decodeParameters(request.content, request);
             }
-        } catch (Exception ignored) {
-        }
 
-        return request;
+            return request;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

@@ -73,36 +73,6 @@ public class HttpResponse {
         this.content = content;
     }
 
-    public @NotNull String getContentType() {
-        return headers.get("Content-Type").split(";")[0];
-    }
-
-    public void setContentType(@NotNull String contentType) {
-        String[] pieces = headers.get("Content-Type").split(";");
-        pieces[0] = contentType;
-        headers.put("Content-Type", String.join(";", pieces));
-    }
-
-    public @NotNull String getCharset() {
-        String[] pieces = headers.get("Content-Type").split(";");
-        for (String piece : pieces) {
-            if (piece.contains("charset=")) {
-                return piece.split("=")[1];
-            }
-        }
-        return "UTF-8";
-    }
-
-    public void setCharset(@NotNull String charset) {
-        String[] pieces = headers.get("Content-Type").split(";");
-        for (int i = 0; i < pieces.length; i++) {
-            if (pieces[i].contains("charset=")) {
-                pieces[i] = "charset=" + charset;
-            }
-        }
-        headers.put("Content-Type", String.join(";", pieces));
-    }
-
     @Override
     public String toString() {
         StringBuilder response = new StringBuilder();

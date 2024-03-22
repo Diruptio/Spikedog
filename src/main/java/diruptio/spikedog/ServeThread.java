@@ -5,9 +5,9 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class ServeThread extends Thread {
@@ -27,13 +27,20 @@ public class ServeThread extends Thread {
             SocketAddress socketAddress = client.getRemoteAddress();
             String address = ((InetSocketAddress) socketAddress).getHostString();
 
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
-            if (!client.isOpen()) return;
-            client.read(buffer);
-            buffer.flip();
-            HttpRequest request =
-                    HttpRequest.parse(new String(buffer.array(), StandardCharsets.UTF_8));
-            buffer.clear();
+            Function<Integer, String> reader =
+                    (size) -> {
+                        ByteBuffer buffer = ByteBuffer.allocate(size);
+                        try {
+                            client.read(buffer);
+                            buffer.flip();
+                            String str = new String(buffer.array());
+                            buffer.clear();
+                            return str;
+                        } catch (Throwable ignored) {
+                            return null;
+                        }
+                    };
+            HttpRequest request = HttpRequest.read(reader);
 
             HttpResponse response = new HttpResponse();
             if (request == null) {
@@ -68,8 +75,9 @@ public class ServeThread extends Thread {
             }
 
             response.setHeader("Content-Length", String.valueOf(response.getContent().length()));
-            response.setHeader("Server", "Spikedog " + BuildConstants.VERSION);
-            buffer = ByteBuffer.wrap(response.toString().getBytes(StandardCharsets.UTF_8));
+            response.setHeader("Server", "Spikedog/" + BuildConstants.VERSION);
+            byte[] bytes = response.toString().getBytes();
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
             while (buffer.hasRemaining()) client.write(buffer);
             buffer.clear();
             client.close();

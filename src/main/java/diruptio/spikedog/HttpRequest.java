@@ -82,7 +82,6 @@ public class HttpRequest {
             HttpRequest request = new HttpRequest();
             List<String> lines = new ArrayList<>();
             long length = readLines(lines, reader.apply(1024));
-            System.out.println(1);
             if (length == -1) return null;
             int processedLength = 0;
             int contentLength;
@@ -90,8 +89,6 @@ public class HttpRequest {
             String requestLine = lines.remove(0);
             processedLength += requestLine.length() + 2;
             String[] pieces = requestLine.split(" ");
-            System.out.println(2);
-            System.out.println(requestLine);
             if (pieces.length == 3) {
                 request.method = pieces[0];
                 decodePath(pieces[1], request);
@@ -111,7 +108,6 @@ public class HttpRequest {
                         if (charsLeft < contentLength) {
                             int addedLength =
                                     readLines(lines, reader.apply(contentLength - charsLeft));
-                            System.out.println(3);
                             if (addedLength == -1) return null;
                             length += addedLength;
                         }
@@ -129,8 +125,6 @@ public class HttpRequest {
 
             return request;
         } catch (Throwable ignored) {
-            System.out.println(4);
-            ignored.printStackTrace(System.err);
             return null;
         }
     }

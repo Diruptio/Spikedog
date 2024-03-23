@@ -15,13 +15,15 @@ public class ServeThread extends Thread {
     private final SocketChannel client;
     private final List<Runnable> afterServe = new ArrayList<>();
 
-    public ServeThread(SocketChannel client) {
+    public ServeThread(@NotNull SocketChannel client) {
         this.client = client;
         serveThreads.add(this);
     }
 
     @Override
     public void run() {
+        GuardianThread.guard(this);
+
         try {
             if (!client.isOpen()) return;
             SocketAddress socketAddress = client.getRemoteAddress();
@@ -91,6 +93,10 @@ public class ServeThread extends Thread {
             exception.printStackTrace(System.err);
         }
         serveThreads.remove(this);
+    }
+
+    public @NotNull SocketChannel getClient() {
+        return client;
     }
 
     public static void runAfterServe(@NotNull Runnable runnable) {

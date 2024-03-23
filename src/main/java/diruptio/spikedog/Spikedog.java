@@ -16,6 +16,10 @@ public class Spikedog {
     private static final List<Servlet> servlets = new ArrayList<>();
 
     public static void main(String[] args) {
+        GuardianThread guardianThread = new GuardianThread();
+        guardianThread.setDaemon(true);
+        guardianThread.start();
+
         try (ServerSocketChannel serverSocket = ServerSocketChannel.open()) {
             // Start server
             serverSocket.bind(new InetSocketAddress(BIND_ADDRESS, PORT));

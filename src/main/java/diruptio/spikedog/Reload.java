@@ -6,6 +6,7 @@ public class Reload implements Runnable {
         System.out.println("Reloading modules...");
         try {
             ModuleLoader.unloadModules();
+            Spikedog.getServlets().clear();
             ModuleLoader.loadModules(Spikedog.MODULES_DIRECTORY);
         } catch (Throwable exception) {
             exception.printStackTrace(System.err);

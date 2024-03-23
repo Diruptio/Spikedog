@@ -70,7 +70,8 @@ public class HttpRequest {
         request.path = URLDecoder.decode(path, StandardCharsets.UTF_8);
     }
 
-    private static long readLines(List<String> lines, String content) {
+    private static int readLines(List<String> lines, String content) {
+        if (content == null) return -1;
         if (!lines.isEmpty()) content = lines.remove(lines.size() - 1) + content;
         lines.addAll(Arrays.asList(content.split("\r\n")));
         return content.length();
@@ -81,12 +82,16 @@ public class HttpRequest {
             HttpRequest request = new HttpRequest();
             List<String> lines = new ArrayList<>();
             long length = readLines(lines, reader.apply(1024));
-            long processedLength = 0;
-            long contentLength;
+            System.out.println(1);
+            if (length == -1) return null;
+            int processedLength = 0;
+            int contentLength;
 
             String requestLine = lines.remove(0);
             processedLength += requestLine.length() + 2;
             String[] pieces = requestLine.split(" ");
+            System.out.println(2);
+            System.out.println(requestLine);
             if (pieces.length == 3) {
                 request.method = pieces[0];
                 decodePath(pieces[1], request);
@@ -94,22 +99,21 @@ public class HttpRequest {
             } else return null;
 
             for (String header = lines.remove(0);
-                    header != null && !header.isBlank();
+                    !lines.isEmpty() && header != null && !header.isBlank();
                     header = lines.remove(0)) {
                 processedLength += header.length() + 2;
                 if (header.contains(": ")) {
                     pieces = header.split(": ", 2);
                     request.headers.put(pieces[0], pieces[1]);
                     if (pieces[0].equalsIgnoreCase("Content-Length")) {
-                        contentLength = Long.parseLong(pieces[1]);
-                        if (length - processedLength < contentLength) {
-                            length +=
-                                    readLines(
-                                            lines,
-                                            reader.apply(
-                                                    (int)
-                                                            (contentLength
-                                                                    - (length - processedLength))));
+                        contentLength = Integer.parseInt(pieces[1]);
+                        int charsLeft = (int) (length - processedLength);
+                        if (charsLeft < contentLength) {
+                            int addedLength =
+                                    readLines(lines, reader.apply(contentLength - charsLeft));
+                            System.out.println(3);
+                            if (addedLength == -1) return null;
+                            length += addedLength;
                         }
                     }
                 }
@@ -124,7 +128,9 @@ public class HttpRequest {
             }
 
             return request;
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
+            System.out.println(4);
+            ignored.printStackTrace(System.err);
             return null;
         }
     }

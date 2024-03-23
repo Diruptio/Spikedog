@@ -28,7 +28,7 @@ public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
 
         // Authorized
         response.setStatus(200, "OK");
-        response.setHeader("Content-Type", "text/plain");
+        response.setHeader("Content-Type", "text/html");
         response.setContent("<h1>Reloading modules...</h1>");
 
         // Reload

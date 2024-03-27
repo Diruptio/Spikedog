@@ -4,29 +4,56 @@ Spikedog is a **lightweight** open source **HTTP server**, optimized for and **W
 Every **HTTP service / Servlet** is deployed from a **Module**.
 ## Install
 Folder Structure:
-- modules
-  - example-module.jar
-  - reload-module.jar
-- Spikedog.jar
-- startscript
+- directory
+  - modules
+    - info-module.jar
+    - reload-module.jar
+  - Spikedog.jar
+  - start.sh
 ### Linux (bash)
-1. Install Java 17 or higher
-2. Download the [latest release](https://github.com/Diruptio/Spikedog/releases/latest/download/Spikedog.jar)
-3. Create the start script 
+1. Install Java 17 or higher (root required)
    ```bash
-   echo "java -jar ./Spikedog.jar &" > path/to/your/startscript
+   sudo apt install openjdk-17-jdk
+   ```
+2. Install screen (root required)
+   ```bash
+   sudo apt install screen
+   ```
+3. Create an empty directory
+   ```bash
+   mkdir directory
+   cd directory
+   ```
+4. Download [Spikedog.jar](https://github.com/Diruptio/Spikedog/releases/latest/download/Spikedog.jar)
+   ```bash
+   wget https://github.com/Diruptio/Spikedog/releases/latest/download/Spikedog.jar
+   ```
+5. Create start.sh with following content:
+   ```bash
+   screen -dmS spikedog java -jar ./Spikedog.jar
+   ```
+6. Make shart.sh executable
+   ```bash
    chmod +x start
    ```
-4. Start the server
+7. Start the server
    ```bash
-   bash path/to/your/startscript
+   ./start.sh
    ```
-5. Create auto start script
+   You can attach to the screen using `screen -r spikedog` and detach with `Ctrl + A + D`.
+8. Autostart (optional)<br>
+   Add the following line to ~/.profile:
    ```bash
-   sudo echo "cd path/to/your && bash ./startscript" > /etc/init.d/spikedog
-   sudo chmod +x /etc/init.d/spikedog
-   sudo chown root:root /etc/init.d/spikedog
+   directory/start.sh
    ```
+## Usage
+### Modules
+All modules are located in the `modules` directory. The server will load all modules on startup.<br>
+If you wish to reload the modules at runtime, download [reload-module.jar](https://github.com/Diruptio/Spikedog/releases/latest/download/reload-module.jar) and place it in the `modules` directory.<br>
+If you wish to see all loaded modules and sites/servlets at runtime, download [info-module.jar](https://github.com/Diruptio/Spikedog/releases/latest/download/info-module.jar) and place it in the `modules` directory.
+### Module loading order
+If you need to load a module before another module, you can create `order.txt` in your `modules` directory.
+The files in `order.txt` will be loaded in the order they are listed and before the non-listed files. You also can use regular expressions in `order.txt`.
 ## Module Development
 ### Dependencies
 Maven:

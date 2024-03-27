@@ -21,11 +21,12 @@ public class ModuleLoader {
         else if (!Files.isDirectory(directory))
             throw new IOException(directory + " is not a directory");
         try (Stream<Path> files = Files.list(directory)) {
-            for (Path file : files.toList()) {
-                if (Files.isDirectory(file) || !file.getFileName().toString().endsWith(".jar"))
+            List<Path> paths = sortPaths(directory, new ArrayList<>(files.toList()));
+            for (Path path : paths) {
+                if (Files.isDirectory(path) || !path.getFileName().toString().endsWith(".jar"))
                     continue;
                 try {
-                    modules.add(loadModule(file));
+                    modules.add(loadModule(path));
                 } catch (IOException | ClassNotFoundException exception) {
                     new IOException(
                                     "An error ocurred while loading modules from " + directory,
@@ -41,6 +42,30 @@ public class ModuleLoader {
                 exception.printStackTrace(System.err);
             }
         }
+    }
+
+    private static List<Path> sortPaths(@NotNull Path directory, @NotNull List<Path> paths) {
+        List<String> order = new ArrayList<>();
+        Path orderFile = directory.resolve("order.txt");
+        if (Files.exists(orderFile) && Files.isRegularFile(orderFile)) {
+            try (Stream<String> lines = Files.lines(orderFile)) {
+                order.addAll(lines.toList());
+            } catch (Throwable ignored) {
+            }
+        }
+
+        List<Path> sorted = new ArrayList<>();
+        for (String line : order) {
+            paths.removeIf(
+                    path -> {
+                        if (path.getFileName().toString().matches(line)) {
+                            sorted.add(path);
+                            return true;
+                        } else return false;
+                    });
+        }
+        sorted.addAll(paths);
+        return sorted;
     }
 
     public static @NotNull Module loadModule(@NotNull Path file)

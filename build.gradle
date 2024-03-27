@@ -26,9 +26,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 jar {
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+    from configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     manifest {
         attributes 'Implementation-Title': 'Spikedog',
@@ -68,9 +66,4 @@ publishing {
             from components.java
         }
     }
-}
-
-subprojects {
-    version = rootProject.version
-    group = rootProject.group
 }

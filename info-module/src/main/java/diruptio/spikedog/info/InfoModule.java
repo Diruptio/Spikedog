@@ -1,7 +1,8 @@
 package diruptio.spikedog.info;
 
-import diruptio.spikedog.*;
+import diruptio.spikedog.Listener;
 import diruptio.spikedog.Module;
+import diruptio.spikedog.Spikedog;
 import diruptio.spikedog.config.Config;
 import java.nio.file.Path;
 

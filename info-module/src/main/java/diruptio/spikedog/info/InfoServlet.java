@@ -37,7 +37,7 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
         content.append("<head><title>Spikedog Info</title></head>");
         content.append("<body>");
         content.append("<h1>Spikedog Info</h1>");
-        content.append("<b>Version:</b> ").append(Spikedog.VERSION).append("<hr>");
+        content.append("<b>Version:</b> ").append(Spikedog.VERSION.get()).append("<hr>");
         content.append("<b>Modules:</b><ul>");
         List<Module> modules = new ArrayList<>(ModuleLoader.getModules());
         modules.sort(Comparator.comparing(module -> module.file().getFileName().toString()));

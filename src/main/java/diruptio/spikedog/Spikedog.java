@@ -6,10 +6,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 public class Spikedog {
-    public static final String VERSION = BuildConstants.VERSION;
+    public static final Supplier<String> VERSION = () -> BuildConstants.VERSION;
     public static final String BIND_ADDRESS = "0.0.0.0";
     public static final int PORT = 8080;
     public static final Path MODULES_DIRECTORY = Path.of("modules");

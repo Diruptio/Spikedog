@@ -34,7 +34,7 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
         response.setStatus(200, "OK");
         response.setHeader("Content-Type", "text/html");
         StringBuilder content = new StringBuilder("<html>");
-        content.append("<head><title>Spikedog Info></title></head>");
+        content.append("<head><title>Spikedog Info</title></head>");
         content.append("<body>");
         content.append("<h1>Spikedog Info</h1>");
         content.append("<b>Version:</b> ").append(Spikedog.VERSION).append("<hr>");

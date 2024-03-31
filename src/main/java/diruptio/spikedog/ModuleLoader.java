@@ -69,8 +69,9 @@ public class ModuleLoader {
     public static @NotNull Module loadModule(@NotNull Path file)
             throws IOException, ClassNotFoundException {
         URL[] urls = {new URL("jar:file:" + file + "!/")};
-        try (JarFile jarFile = new JarFile(file.toFile());
-                URLClassLoader classLoader = URLClassLoader.newInstance(urls)) {
+        try (JarFile jarFile = new JarFile(file.toFile())) {
+            ClassLoader parent = ClassLoader.getSystemClassLoader();
+            ModuleClassLoader classLoader = new ModuleClassLoader(urls, parent);
             Module module = new Module(file, classLoader, new ArrayList<>(), new ArrayList<>());
 
             // Load classes
@@ -118,5 +119,35 @@ public class ModuleLoader {
 
     public static @NotNull List<Module> getModules() {
         return modules;
+    }
+
+    public static class ModuleClassLoader extends URLClassLoader {
+        public ModuleClassLoader(URL[] urls, ClassLoader parent) {
+            super(urls, parent);
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            return internalLoadClass(name, resolve, true);
+        }
+
+        private Class<?> internalLoadClass(String name, boolean resolve, boolean checkOther)
+                throws ClassNotFoundException {
+            try {
+                return super.loadClass(name, resolve);
+            } catch (ClassNotFoundException exception) {
+                if (checkOther) {
+                    for (Module module : modules) {
+                        try {
+                            if (module.classLoader() != this) {
+                                return module.classLoader().internalLoadClass(name, resolve, false);
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                }
+                throw exception;
+            }
+        }
     }
 }

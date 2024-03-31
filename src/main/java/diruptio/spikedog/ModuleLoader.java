@@ -27,10 +27,8 @@ public class ModuleLoader {
                     continue;
                 try {
                     modules.add(loadModule(path));
-                } catch (IOException | ClassNotFoundException exception) {
-                    new IOException(
-                                    "An error ocurred while loading modules from " + directory,
-                                    exception)
+                } catch (Throwable exception) {
+                    new IOException("An error ocurred while loading " + directory, exception)
                             .printStackTrace(System.err);
                 }
             }
@@ -84,8 +82,11 @@ public class ModuleLoader {
                 String className = classFileName.replace("/", ".");
                 try {
                     module.classes().add(Class.forName(className));
-                } catch (ClassNotFoundException exception) {
-                    module.classes().add(classLoader.loadClass(className));
+                } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
+                    try {
+                        module.classes().add(classLoader.loadClass(className));
+                    } catch (NoClassDefFoundError ignored2) {
+                    }
                 }
             }
 

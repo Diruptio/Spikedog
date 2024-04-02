@@ -78,6 +78,7 @@ public class ServeThread extends Thread {
 
             response.setHeader("Content-Length", String.valueOf(response.getContent().length()));
             response.setHeader("Server", "Spikedog/" + Spikedog.VERSION);
+            response.setHeader("Access-Control-Allow-Origin", "*");
             byte[] bytes = response.toString().getBytes();
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             while (buffer.hasRemaining()) client.write(buffer);

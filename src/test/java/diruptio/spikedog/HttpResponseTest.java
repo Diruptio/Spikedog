@@ -12,7 +12,7 @@ public class HttpResponseTest {
         response.setContent("Hello, World!");
 
         Assertions.assertEquals(
-                "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello, World!",
+                "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nHello, World!",
                 response.toString());
     }
 }

@@ -119,7 +119,7 @@ public class HttpRequest {
             while (!lines.isEmpty()) content.append(lines.remove(0)).append("\r\n");
             request.content = content.toString();
             String contentType = request.getHeader("Content-Type", "");
-            if (contentType.equals("application/x-www-form-urlencoded")) {
+            if (contentType.startsWith("application/x-www-form-urlencoded")) {
                 decodeParameters(request.content, request);
             }
 

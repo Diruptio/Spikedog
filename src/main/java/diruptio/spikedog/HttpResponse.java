@@ -113,7 +113,6 @@ public class HttpResponse {
                 stream.writeBytes(content.getBytes());
             }
             byte[] bytes = stream.toByteArray();
-            System.out.println(new String(bytes));
             stream.close();
             return bytes;
         } catch (IOException ignored) {

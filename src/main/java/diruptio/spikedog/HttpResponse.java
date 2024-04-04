@@ -93,13 +93,14 @@ public class HttpResponse {
                 .append(' ')
                 .append(statusMessage)
                 .append("\r\n");
-        headers.forEach((key, value) -> {
-            response.append(key).append(": ").append(value);
-            if (key.equalsIgnoreCase("Content-Type")) {
-                response.append("; charset=").append(charset.name());
-            }
-            response.append("\r\n");
-        });
+        headers.forEach(
+                (key, value) -> {
+                    response.append(key).append(": ").append(value);
+                    if (key.equalsIgnoreCase("Content-Type")) {
+                        response.append("; charset=").append(charset.name());
+                    }
+                    response.append("\r\n");
+                });
         response.append("\r\n").append(content);
         return response.toString();
     }

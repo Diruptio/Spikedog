@@ -5,7 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -80,7 +79,7 @@ public class ServeThread extends Thread {
             response.setHeader("Server", "Spikedog/" + Spikedog.VERSION);
             response.setHeader("Access-Control-Allow-Origin", "*");
             response.setHeader("Content-Length", String.valueOf(response.getContent().length()));
-            byte[] bytes = response.toString().getBytes(StandardCharsets.US_ASCII);
+            byte[] bytes = response.toString().getBytes(response.getCharset());
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             while (buffer.hasRemaining()) client.write(buffer);
             buffer.clear();

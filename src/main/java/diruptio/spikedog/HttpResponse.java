@@ -1,8 +1,10 @@
 package diruptio.spikedog;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +13,7 @@ public class HttpResponse {
     private String httpVersion = "HTTP/1.1";
     private int statusCode = 200;
     private String statusMessage = "OK";
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, String> headers = new LinkedHashMap<>();
     private String content = "";
     private Charset charset = StandardCharsets.UTF_8;
 
@@ -76,32 +78,46 @@ public class HttpResponse {
         this.content = content;
     }
 
-    public @NotNull Charset getCharset() {
+    public @Nullable Charset getCharset() {
         return charset;
     }
 
-    public void setCharset(@NotNull Charset charset) {
+    public void setCharset(@Nullable Charset charset) {
         this.charset = charset;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder response = new StringBuilder();
-        response.append(httpVersion)
-                .append(' ')
-                .append(statusCode)
-                .append(' ')
-                .append(statusMessage)
-                .append("\r\n");
-        headers.forEach(
-                (key, value) -> {
-                    response.append(key).append(": ").append(value);
-                    if (key.equalsIgnoreCase("Content-Type")) {
-                        response.append("; charset=").append(charset.name());
-                    }
-                    response.append("\r\n");
-                });
-        response.append("\r\n").append(content);
-        return response.toString();
+    public byte[] toByteArray() {
+        try {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            stream.writeBytes(httpVersion.getBytes(StandardCharsets.US_ASCII));
+            stream.writeBytes(" ".getBytes(StandardCharsets.US_ASCII));
+            stream.writeBytes(String.valueOf(statusCode).getBytes(StandardCharsets.US_ASCII));
+            stream.writeBytes(" ".getBytes(StandardCharsets.US_ASCII));
+            stream.writeBytes(statusMessage.getBytes(StandardCharsets.US_ASCII));
+            stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
+            headers.forEach(
+                    (key, value) -> {
+                        stream.writeBytes(key.getBytes(StandardCharsets.US_ASCII));
+                        stream.writeBytes(": ".getBytes(StandardCharsets.US_ASCII));
+                        stream.writeBytes(value.getBytes(StandardCharsets.US_ASCII));
+                        if (key.equalsIgnoreCase("Content-Type") && charset != null) {
+                            stream.writeBytes("; charset=".getBytes(StandardCharsets.US_ASCII));
+                            stream.writeBytes(charset.name().getBytes(StandardCharsets.US_ASCII));
+                        }
+                        stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
+                    });
+            stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
+            if (charset != null) {
+                stream.writeBytes(content.getBytes(charset));
+            } else {
+                stream.writeBytes(content.getBytes());
+            }
+            byte[] bytes = stream.toByteArray();
+            System.out.println(new String(bytes));
+            stream.close();
+            return bytes;
+        } catch (IOException ignored) {
+            return new byte[0];
+        }
     }
 }

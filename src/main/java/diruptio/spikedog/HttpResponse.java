@@ -1,5 +1,7 @@
 package diruptio.spikedog;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -11,9 +13,10 @@ public class HttpResponse {
     private String statusMessage = "OK";
     private Map<String, String> headers = new HashMap<>();
     private String content = "";
+    private Charset charset = StandardCharsets.UTF_8;
 
     public HttpResponse() {
-        headers.put("Content-Type", "text/plain; charset=UTF-8");
+        headers.put("Content-Type", "text/plain");
     }
 
     public @NotNull String getHttpVersion() {
@@ -73,6 +76,14 @@ public class HttpResponse {
         this.content = content;
     }
 
+    public @NotNull Charset getCharset() {
+        return charset;
+    }
+
+    public void setCharset(@NotNull Charset charset) {
+        this.charset = charset;
+    }
+
     @Override
     public String toString() {
         StringBuilder response = new StringBuilder();
@@ -82,8 +93,13 @@ public class HttpResponse {
                 .append(' ')
                 .append(statusMessage)
                 .append("\r\n");
-        headers.forEach(
-                (key, value) -> response.append(key).append(": ").append(value).append("\r\n"));
+        headers.forEach((key, value) -> {
+            response.append(key).append(": ").append(value);
+            if (key.equalsIgnoreCase("Content-Type")) {
+                response.append("; charset=").append(charset.name());
+            }
+            response.append("\r\n");
+        });
         response.append("\r\n").append(content);
         return response.toString();
     }

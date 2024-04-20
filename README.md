@@ -60,15 +60,14 @@ Maven:
 ```xml
 <repositories>
   <repository>
-    <id>jitpack.io</id>
-    <url>https://jitpack.io</url>
+    <url>https://repo.diruptio.de/repository/maven-public/</url>
   </repository>
 </repositories>
 ```
 ```xml
 <dependencies>
   <dependency>
-    <groupId>com.github.Diruptio</groupId>
+    <groupId>diruptio</groupId>
     <artifactId>Spikedog</artifactId>
     <version>VERSION</version>
   </dependency>
@@ -77,12 +76,12 @@ Maven:
 Gradle:
 ```groovy
 repositories {
-    maven { url = "https://jitpack.io" }
+    maven { url = "https://repo.diruptio.de/repository/maven-public/" }
 }
 ```
 ```groovy
 dependencies {
-    implementation 'com.github.Diruptio:Spikedog:VERSION'
+    implementation "diruptio:Spikedog:VERSION"
 }
 ```
 ### Example Module

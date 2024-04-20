@@ -5,14 +5,17 @@ plugins {
     id 'maven-publish'
 }
 
+version = "1.2.3"
+group = "diruptio"
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation "org.jetbrains:annotations:${jetbrains_annotations_version}"
-    implementation "com.google.code.gson:gson:${gson_version}"
-    implementation "org.yaml:snakeyaml:${snakeyaml_version}"
+    implementation "org.jetbrains:annotations:24.1.0"
+    implementation "com.google.code.gson:gson:2.10.1"
+    implementation "org.yaml:snakeyaml:2.2"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -55,6 +58,16 @@ spotless {
 }
 
 publishing {
+    repositories {
+        maven {
+            url = "https://repo.diruptio.de/repository/maven-public-${version.endsWith("SNAPSHOT") ? "snapshots" : "releases"}/"
+            name = "DiruptioPublic"
+            credentials {
+                username = findProperty("maven_username") ?: System.getenv("MAVEN_USERNAME")
+                password = findProperty("maven_password") ?: System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
     publications {
         maven(MavenPublication) {
             from components.java

@@ -1,9 +1,11 @@
 package diruptio.spikedog;
 
+import java.io.IOException;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,24 +72,24 @@ public class HttpRequest {
         request.path = URLDecoder.decode(path, StandardCharsets.UTF_8);
     }
 
-    private static int readLines(List<String> lines, String content) {
-        if (content == null) return -1;
-        if (!lines.isEmpty()) content = lines.remove(lines.size() - 1) + content;
-        lines.addAll(Arrays.asList(content.split("\r\n")));
-        return content.length();
+    private static @NotNull String readLine(@NotNull SocketChannel client) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(1);
+        StringBuilder line = new StringBuilder();
+        while (client.read(buffer) != -1) {
+            buffer.flip();
+            char c = (char) buffer.get();
+            if (c == '\n') break;
+            if (c != '\r') line.append(c);
+            buffer.clear();
+        }
+        return line.toString();
     }
 
-    public static @Nullable HttpRequest read(@NotNull Function<Integer, String> reader) {
+    public static @Nullable HttpRequest read(@NotNull SocketChannel client) {
         try {
             HttpRequest request = new HttpRequest();
-            List<String> lines = new ArrayList<>();
-            long length = readLines(lines, reader.apply(1024));
-            if (length == -1) return null;
-            int processedLength = 0;
-            int contentLength;
-
-            String requestLine = lines.remove(0);
-            processedLength += requestLine.length() + 2;
+            int contentLength = -1;
+            String requestLine = readLine(client);
             String[] pieces = requestLine.split(" ");
             if (pieces.length == 3) {
                 request.method = pieces[0];
@@ -95,29 +97,24 @@ public class HttpRequest {
                 request.httpVersion = pieces[2];
             } else return null;
 
-            for (String header = lines.remove(0);
-                    !lines.isEmpty() && header != null && !header.isBlank();
-                    header = lines.remove(0)) {
-                processedLength += header.length() + 2;
+            String header;
+            while (true) {
+                header = readLine(client);
+                if (header.isBlank()) break;
                 if (header.contains(": ")) {
                     pieces = header.split(": ", 2);
                     request.headers.put(pieces[0], pieces[1]);
                     if (pieces[0].equalsIgnoreCase("Content-Length")) {
                         contentLength = Integer.parseInt(pieces[1]);
-                        int charsLeft = (int) (length - processedLength);
-                        if (charsLeft < contentLength) {
-                            int addedLength =
-                                    readLines(lines, reader.apply(contentLength - charsLeft));
-                            if (addedLength == -1) return null;
-                            length += addedLength;
-                        }
                     }
                 }
             }
-
-            StringBuilder content = new StringBuilder();
-            while (!lines.isEmpty()) content.append(lines.remove(0)).append("\r\n");
-            request.content = content.toString();
+            if (contentLength > 0) {
+                ByteBuffer buffer = ByteBuffer.allocate(contentLength);
+                client.read(buffer);
+                request.content = new String(buffer.array());
+                buffer.clear();
+            } else request.content = "";
             String contentType = request.getHeader("Content-Type", "");
             if (contentType.startsWith("application/x-www-form-urlencoded")) {
                 decodeParameters(request.content, request);
@@ -125,6 +122,7 @@ public class HttpRequest {
 
             return request;
         } catch (Throwable ignored) {
+            ignored.printStackTrace(System.err);
             return null;
         }
     }

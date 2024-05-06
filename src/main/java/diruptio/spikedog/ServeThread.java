@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 public class ServeThread extends Thread {
@@ -29,20 +28,7 @@ public class ServeThread extends Thread {
             SocketAddress socketAddress = client.getRemoteAddress();
             String address = ((InetSocketAddress) socketAddress).getHostString();
 
-            Function<Integer, String> reader =
-                    (size) -> {
-                        ByteBuffer buffer = ByteBuffer.allocate(size);
-                        try {
-                            client.read(buffer);
-                            buffer.flip();
-                            String str = new String(buffer.array());
-                            buffer.clear();
-                            return str;
-                        } catch (Throwable ignored) {
-                            return null;
-                        }
-                    };
-            HttpRequest request = HttpRequest.read(reader);
+            HttpRequest request = HttpRequest.read(client);
 
             HttpResponse response = new HttpResponse();
             if (request == null) {

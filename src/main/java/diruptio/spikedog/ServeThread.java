@@ -36,9 +36,9 @@ public class ServeThread extends Thread {
                 response.setHeader("Content-Type", "text/html");
                 response.setContent("<h1>400 Bad Request</h1>");
             } else {
-                System.out.printf(
-                        "Received request from %s: %s %s\n",
-                        address, request.getMethod(), request.getPath());
+                Spikedog.LOGGER.info(
+                        "Received request from %s: %s %s"
+                                .formatted(address, request.getMethod(), request.getPath()));
                 boolean found = false;
                 for (Spikedog.Servlet servlet : Spikedog.getServlets()) {
                     if (servlet.path().equals(request.getPath())

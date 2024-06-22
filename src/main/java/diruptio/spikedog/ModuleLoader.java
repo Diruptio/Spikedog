@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,13 +24,14 @@ public class ModuleLoader {
         try (Stream<Path> files = Files.list(directory)) {
             List<Path> paths = sortPaths(directory, new ArrayList<>(files.toList()));
             for (Path path : paths) {
-                if (Files.isDirectory(path) || !path.getFileName().toString().endsWith(".jar"))
+                if (Files.isDirectory(path) || !path.getFileName().toString().endsWith(".jar")) {
                     continue;
+                }
                 try {
                     modules.add(loadModule(path));
                 } catch (Throwable exception) {
-                    new IOException("An error ocurred while loading " + directory, exception)
-                            .printStackTrace(System.err);
+                    Spikedog.LOGGER.log(
+                            Level.SEVERE, "An error ocurred while loading " + directory, exception);
                 }
             }
         }
@@ -37,7 +39,8 @@ public class ModuleLoader {
             try {
                 module.listeners().forEach(listener -> listener.onLoad(module));
             } catch (Throwable exception) {
-                exception.printStackTrace(System.err);
+                Spikedog.LOGGER.log(
+                        Level.SEVERE, "An error ocurred while loading " + module.file(), exception);
             }
         }
     }
@@ -102,7 +105,7 @@ public class ModuleLoader {
                 }
             }
 
-            System.out.printf("Loaded module %s\n", file.getFileName());
+            Spikedog.LOGGER.info("Loaded module " + file.getFileName());
             return module;
         }
     }
@@ -112,7 +115,7 @@ public class ModuleLoader {
         modules.forEach(module -> module.listeners().clear());
         for (Module module : modules) {
             module.classLoader().close();
-            System.out.printf("Unloaded module %s\n", module.file().getFileName());
+            Spikedog.LOGGER.info("Unloaded module " + module.file().getFileName());
         }
         modules.clear();
     }

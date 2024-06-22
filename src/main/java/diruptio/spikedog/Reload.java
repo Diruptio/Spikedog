@@ -1,15 +1,17 @@
 package diruptio.spikedog;
 
+import java.util.logging.Level;
+
 public class Reload implements Runnable {
     @Override
     public void run() {
-        System.out.println("Reloading modules...");
+        Spikedog.LOGGER.info("Reloading modules...");
         try {
             ModuleLoader.unloadModules();
             Spikedog.getServlets().clear();
             ModuleLoader.loadModules(Spikedog.MODULES_DIRECTORY);
         } catch (Throwable exception) {
-            exception.printStackTrace(System.err);
+            Spikedog.LOGGER.log(Level.SEVERE, "Failed to reload modules", exception);
         }
     }
 }

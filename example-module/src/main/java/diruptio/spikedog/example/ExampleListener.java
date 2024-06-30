@@ -3,10 +3,12 @@ package diruptio.spikedog.example;
 import diruptio.spikedog.Listener;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.Spikedog;
+import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public class ExampleListener implements Listener {
     @Override
-    public void onLoad(Module self) {
+    public void onLoad(@NotNull Module self) {
         System.out.println("Loading Spikedog example module");
 
         // Hello World servlet

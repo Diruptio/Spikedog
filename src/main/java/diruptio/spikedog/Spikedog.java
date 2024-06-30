@@ -31,7 +31,7 @@ public class Spikedog {
      * @param loadModules Whether to load modules from the modules directory
      */
     public static void listen(int port, @NotNull String bindAddress, boolean loadModules) {
-        GuardianThread guardianThread = new GuardianThread();
+        WatchdogThread guardianThread = new WatchdogThread();
         guardianThread.setDaemon(true);
         guardianThread.start();
 

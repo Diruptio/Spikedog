@@ -5,7 +5,7 @@ plugins {
     id("application")
 }
 
-version = "1.2.5"
+version = "1.2.6"
 group = "diruptio"
 
 repositories {
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains:annotations:24.1.0")
+    compileOnly("org.jetbrains:annotations:24.1.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.yaml:snakeyaml:2.2")
     implementation("commons-cli:commons-cli:1.8.0")

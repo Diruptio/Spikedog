@@ -5,12 +5,13 @@ import diruptio.spikedog.Module;
 import diruptio.spikedog.Spikedog;
 import diruptio.spikedog.config.Config;
 import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
 
 public class InfoModule implements Listener {
     private static Config config;
 
     @Override
-    public void onLoad(Module self) {
+    public void onLoad(@NotNull Module self) {
         Path configFile = self.file().resolveSibling("info").resolve("config.yml");
         config = new Config(configFile, Config.Type.YAML);
         if (!config.contains("authorization")) {

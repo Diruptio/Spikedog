@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GuardianThread extends Thread {
+public class WatchdogThread extends Thread {
     public static final long MAX_SERVE_TIME = 10000;
     private static final Map<ServeThread, Long> serveThreads = new HashMap<>();
 

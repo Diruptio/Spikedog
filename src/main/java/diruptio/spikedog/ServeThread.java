@@ -21,12 +21,20 @@ public class ServeThread extends Thread {
 
     @Override
     public void run() {
-        GuardianThread.guard(this);
+        WatchdogThread.guard(this);
 
         try {
             if (!client.isOpen()) return;
             SocketAddress socketAddress = client.getRemoteAddress();
             String address = ((InetSocketAddress) socketAddress).getHostString();
+            for (Module module : ModuleLoader.getModules()) {
+                for (Listener listener : module.listeners()) {
+                    if (!listener.onConnect(client)) {
+                        client.close();
+                        return;
+                    }
+                }
+            }
 
             HttpRequest request = HttpRequest.read(client);
 

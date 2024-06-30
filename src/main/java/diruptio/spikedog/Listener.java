@@ -1,13 +1,14 @@
 package diruptio.spikedog;
 
 import java.nio.channels.SocketChannel;
+import org.jetbrains.annotations.NotNull;
 
 public interface Listener {
-    public default void onLoad(Module self) {}
+    default void onLoad(@NotNull Module self) {}
 
-    public default void onUnload() {}
+    default void onUnload() {}
 
-    public default boolean onConnect(SocketChannel client) {
+    default boolean onConnect(@NotNull SocketChannel client) {
         return true;
     }
 }

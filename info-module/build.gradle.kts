@@ -18,7 +18,7 @@ tasks {
     }
 
     jar {
-        archiveBaseName = "reload-module"
+        archiveBaseName = "info-module"
         doLast {
             copy {
                 from(archiveFile)

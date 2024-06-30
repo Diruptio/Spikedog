@@ -18,12 +18,6 @@ tasks {
     }
 
     jar {
-        archiveBaseName = "reload-module"
-        doLast {
-            copy {
-                from(archiveFile)
-                into(rootProject.file("run/modules"))
-            }
-        }
+        archiveFileName = "example-module"
     }
 }

@@ -1,6 +1,8 @@
 name: Upload Release Artifacts
 
-on: release
+on:
+  release:
+    types: [created]
 
 permissions:
   contents: write

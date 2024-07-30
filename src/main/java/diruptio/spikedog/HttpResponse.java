@@ -95,17 +95,16 @@ public class HttpResponse {
             stream.writeBytes(" ".getBytes(StandardCharsets.US_ASCII));
             stream.writeBytes(statusMessage.getBytes(StandardCharsets.US_ASCII));
             stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
-            headers.forEach(
-                    (key, value) -> {
-                        stream.writeBytes(key.getBytes(StandardCharsets.US_ASCII));
-                        stream.writeBytes(": ".getBytes(StandardCharsets.US_ASCII));
-                        stream.writeBytes(value.getBytes(StandardCharsets.US_ASCII));
-                        if (key.equalsIgnoreCase("Content-Type") && charset != null) {
-                            stream.writeBytes("; charset=".getBytes(StandardCharsets.US_ASCII));
-                            stream.writeBytes(charset.name().getBytes(StandardCharsets.US_ASCII));
-                        }
-                        stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
-                    });
+            headers.forEach((key, value) -> {
+                stream.writeBytes(key.getBytes(StandardCharsets.US_ASCII));
+                stream.writeBytes(": ".getBytes(StandardCharsets.US_ASCII));
+                stream.writeBytes(value.getBytes(StandardCharsets.US_ASCII));
+                if (key.equalsIgnoreCase("Content-Type") && charset != null) {
+                    stream.writeBytes("; charset=".getBytes(StandardCharsets.US_ASCII));
+                    stream.writeBytes(charset.name().getBytes(StandardCharsets.US_ASCII));
+                }
+                stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
+            });
             stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
             if (charset != null) {
                 stream.writeBytes(content.getBytes(charset));

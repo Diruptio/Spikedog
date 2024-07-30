@@ -30,7 +30,7 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
             }
         }
 
-        // Authorized
+        // Success
         response.setStatus(200, "OK");
         response.setHeader("Content-Type", "text/html");
         StringBuilder content = new StringBuilder("<html>");

@@ -25,13 +25,11 @@ public class ExampleListener implements Listener {
                 },
                 "POST");
         // This servlet (with the same path) accepts all other requests
-        Spikedog.addServlet(
-                "/only-post",
-                (request, response) -> {
-                    response.setStatus(405, "Method Not Allowed");
-                    response.setHeader("Content-Type", "text/plain");
-                    response.setContent("This endpoint only accepts POST requests");
-                });
+        Spikedog.addServlet("/only-post", (request, response) -> {
+            response.setStatus(405, "Method Not Allowed");
+            response.setHeader("Content-Type", "text/plain");
+            response.setContent("This endpoint only accepts POST requests");
+        });
     }
 
     @Override

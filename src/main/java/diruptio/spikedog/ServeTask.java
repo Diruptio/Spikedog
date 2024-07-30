@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public class ServeThread extends Thread {
-    private static final List<ServeThread> serveThreads = new ArrayList<>();
+public class ServeTask extends Thread {
+    private static final List<ServeTask> SERVE_TASKS = new ArrayList<>();
     private final SocketChannel client;
     private final List<Runnable> afterServe = new ArrayList<>();
 
-    public ServeThread(@NotNull SocketChannel client) {
+    public ServeTask(@NotNull SocketChannel client) {
         this.client = client;
-        serveThreads.add(this);
+        SERVE_TASKS.add(this);
     }
 
     @Override
@@ -45,8 +45,7 @@ public class ServeThread extends Thread {
                 response.setContent("<h1>400 Bad Request</h1>");
             } else {
                 Spikedog.LOGGER.info(
-                        "Received request from %s: %s %s"
-                                .formatted(address, request.getMethod(), request.getPath()));
+                        "Received request from %s: %s %s".formatted(address, request.getMethod(), request.getPath()));
                 boolean found = false;
                 for (Spikedog.Servlet servlet : Spikedog.getServlets()) {
                     if (servlet.path().equals(request.getPath())
@@ -86,7 +85,7 @@ public class ServeThread extends Thread {
         } catch (Throwable exception) {
             exception.printStackTrace(System.err);
         }
-        serveThreads.remove(this);
+        SERVE_TASKS.remove(this);
     }
 
     public @NotNull SocketChannel getClient() {
@@ -94,7 +93,7 @@ public class ServeThread extends Thread {
     }
 
     public static void runAfterServe(@NotNull Runnable runnable) {
-        serveThreads.stream()
+        SERVE_TASKS.stream()
                 .filter(thread -> thread == Thread.currentThread())
                 .forEach(thread -> thread.afterServe.add(runnable));
     }

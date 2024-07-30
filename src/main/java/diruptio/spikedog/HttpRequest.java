@@ -54,11 +54,11 @@ public class HttpRequest {
     }
 
     private static void decodeParameters(String parameters, HttpRequest request) {
+        System.out.println(parameters);
         for (String parameter : parameters.split("&")) {
             if (parameter.contains("=")) {
                 String[] pieces = parameter.split("=", 2);
-                request.parameters.put(
-                        pieces[0], URLDecoder.decode(pieces[1], StandardCharsets.UTF_8));
+                request.parameters.put(pieces[0], URLDecoder.decode(pieces[1], StandardCharsets.UTF_8));
             } else request.parameters.put(parameter, "");
         }
     }

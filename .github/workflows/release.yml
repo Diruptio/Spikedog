@@ -30,4 +30,6 @@ jobs:
           gh release upload ${{ github.ref_name }} info-module/build/libs/info-module.jar &
           gh release upload ${{ github.ref_name }} reload-module/build/libs/reload-module.jar &
           curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" "https://api.diruptio.de/project/version/create?project=spikedog&version=${{ github.ref_name }}&tags="
-          cat build/libs/Dynamite.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=dynamite&version=${{ github.ref_name }}&file=Dynamite.jar"
+          cat build/libs/Spikedog.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=Spikedog.jar"
+          cat info-module/build/libs/info-module.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=info-module.jar"
+          cat reload-module/build/libs/reload-module.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=reload-module.jar"

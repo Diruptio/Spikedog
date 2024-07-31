@@ -1,6 +1,6 @@
 Made in Germany <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" width="20"> with love <font color="red">❤</font> and beer 🍺.
 # Spikedog
-Spikedog is a **lightweight** open source **HTTP server**, optimized for and **Web APIs** and good **performance**.<br>
+Spikedog is a **lightweight** open source **HTTP server**, optimized for **Web APIs** and good **performance**.<br>
 Every **HTTP service / Servlet** is deployed from a **Module**.
 ## Install
 Folder Structure:

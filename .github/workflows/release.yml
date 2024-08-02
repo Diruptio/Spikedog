@@ -22,14 +22,23 @@ jobs:
         run: chmod +x ./gradlew
       - name: Build with Gradle
         run: ./gradlew build
-      - name: Upload Artifacts
+      - name: Upload GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload ${{ github.ref_name }} build/libs/Spikedog.jar &
           gh release upload ${{ github.ref_name }} info-module/build/libs/info-module.jar &
           gh release upload ${{ github.ref_name }} reload-module/build/libs/reload-module.jar &
+      - name: Upload to Diruptio project
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
           curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" "https://api.diruptio.de/project/version/create?project=spikedog&version=${{ github.ref_name }}&tags="
           cat build/libs/Spikedog.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=Spikedog.jar"
           cat info-module/build/libs/info-module.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=info-module.jar"
           cat reload-module/build/libs/reload-module.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=reload-module.jar"
+      - name: Publish to Diruptio Maven repository
+        env:
+          DIRUPTIO_MAVEN_USERNAME: ${{ secrets.DIRUPTIO_MAVEN_USERNAME }}
+          DIRUPTIO_MAVEN_PASSWORD: ${{ secrets.DIRUPTIO_MAVEN_PASSWORD }}
+        run: ./gradlew publish --stacktrace

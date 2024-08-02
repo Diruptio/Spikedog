@@ -3,6 +3,7 @@ package diruptio.spikedog.example;
 import diruptio.spikedog.Listener;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.Spikedog;
+import java.nio.channels.SocketChannel;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
@@ -33,7 +34,20 @@ public class ExampleListener implements Listener {
     }
 
     @Override
+    public void onLoaded(@NotNull Module self) {
+        System.out.println("Loaded Spikedog example module");
+
+        // Here you can do something after all modules have been loaded
+    }
+
+    @Override
     public void onUnload() {
         System.out.println("Unloading Spikedog example module");
+    }
+
+    @Override
+    public boolean allowConnection(@NotNull SocketChannel client) {
+        // Don't allow the request if the client is from a specific IP address
+        return !client.socket().getInetAddress().getHostAddress().equals("123.123.123.123");
     }
 }

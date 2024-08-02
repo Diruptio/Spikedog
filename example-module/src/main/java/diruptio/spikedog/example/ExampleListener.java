@@ -33,6 +33,13 @@ public class ExampleListener implements Listener {
     }
 
     @Override
+    public void onLoaded(@NotNull Module self) {
+        System.out.println("Loaded Spikedog example module");
+
+        // Here you can do something after all modules have been loaded
+    }
+
+    @Override
     public void onUnload() {
         System.out.println("Unloading Spikedog example module");
     }

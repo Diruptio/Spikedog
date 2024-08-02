@@ -40,6 +40,13 @@ public class ModuleLoader {
                 Spikedog.LOGGER.log(Level.SEVERE, "An error ocurred while loading " + module.file(), exception);
             }
         }
+        for (Module module : modules) {
+            try {
+                module.listeners().forEach(listener -> listener.onLoaded(module));
+            } catch (Throwable exception) {
+                Spikedog.LOGGER.log(Level.SEVERE, "An error ocurred while loading " + module.file(), exception);
+            }
+        }
     }
 
     private static List<Path> sortPaths(@NotNull Path directory, @NotNull List<Path> paths) {

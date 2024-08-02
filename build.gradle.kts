@@ -16,7 +16,6 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.2")
-    implementation("commons-cli:commons-cli:1.8.0")
 }
 
 spotless {
@@ -27,7 +26,7 @@ spotless {
     }
     java {
         target("**/src/**/*.java")
-        googleJavaFormat().aosp()
+        palantirJavaFormat("2.48.0").formatJavadoc(true)
         removeUnusedImports()
         indentWithSpaces()
         endWithNewline()
@@ -42,6 +41,12 @@ val generateSources =
         expand(mapOf("version" to version))
     }
 sourceSets.main.get().java.srcDir(generateSources.map { it.outputs })
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    withSourcesJar()
+    withJavadocJar()
+}
 
 tasks {
     compileJava {

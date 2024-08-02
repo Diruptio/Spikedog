@@ -19,8 +19,7 @@ public class ModuleLoader {
 
     public static void loadModules(@NotNull Path directory) throws IOException {
         if (!Files.exists(directory)) Files.createDirectories(directory);
-        else if (!Files.isDirectory(directory))
-            throw new IOException(directory + " is not a directory");
+        else if (!Files.isDirectory(directory)) throw new IOException(directory + " is not a directory");
         try (Stream<Path> files = Files.list(directory)) {
             List<Path> paths = sortPaths(directory, new ArrayList<>(files.toList()));
             for (Path path : paths) {
@@ -30,8 +29,7 @@ public class ModuleLoader {
                 try {
                     modules.add(loadModule(path));
                 } catch (Throwable exception) {
-                    Spikedog.LOGGER.log(
-                            Level.SEVERE, "An error ocurred while loading " + directory, exception);
+                    Spikedog.LOGGER.log(Level.SEVERE, "An error ocurred while loading " + directory, exception);
                 }
             }
         }
@@ -39,8 +37,7 @@ public class ModuleLoader {
             try {
                 module.listeners().forEach(listener -> listener.onLoad(module));
             } catch (Throwable exception) {
-                Spikedog.LOGGER.log(
-                        Level.SEVERE, "An error ocurred while loading " + module.file(), exception);
+                Spikedog.LOGGER.log(Level.SEVERE, "An error ocurred while loading " + module.file(), exception);
             }
         }
     }
@@ -57,20 +54,18 @@ public class ModuleLoader {
 
         List<Path> sorted = new ArrayList<>();
         for (String line : order) {
-            paths.removeIf(
-                    path -> {
-                        if (path.getFileName().toString().matches(line)) {
-                            sorted.add(path);
-                            return true;
-                        } else return false;
-                    });
+            paths.removeIf(path -> {
+                if (path.getFileName().toString().matches(line)) {
+                    sorted.add(path);
+                    return true;
+                } else return false;
+            });
         }
         sorted.addAll(paths);
         return sorted;
     }
 
-    public static @NotNull Module loadModule(@NotNull Path file)
-            throws IOException, ClassNotFoundException {
+    public static @NotNull Module loadModule(@NotNull Path file) throws IOException, ClassNotFoundException {
         URL[] urls = {new URL("jar:file:" + file + "!/")};
         try (JarFile jarFile = new JarFile(file.toFile())) {
             ClassLoader parent = ClassLoader.getSystemClassLoader();
@@ -82,7 +77,8 @@ public class ModuleLoader {
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
                 if (entry.isDirectory() || !entry.getName().endsWith(".class")) continue;
-                String classFileName = entry.getName().substring(0, entry.getName().length() - 6);
+                String classFileName =
+                        entry.getName().substring(0, entry.getName().length() - 6);
                 String className = classFileName.replace("/", ".");
                 try {
                     module.classes().add(Class.forName(className));
@@ -98,7 +94,8 @@ public class ModuleLoader {
             for (Class<?> clazz : module.classes()) {
                 if (Listener.class.isAssignableFrom(clazz)) {
                     try {
-                        Listener listener = (Listener) clazz.getDeclaredConstructor().newInstance();
+                        Listener listener =
+                                (Listener) clazz.getDeclaredConstructor().newInstance();
                         module.listeners().add(listener);
                     } catch (ReflectiveOperationException ignored) {
                     }

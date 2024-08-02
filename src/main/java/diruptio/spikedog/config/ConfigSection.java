@@ -64,9 +64,7 @@ public class ConfigSection {
      */
     @SuppressWarnings("unchecked")
     public <T> @Nullable T get(@NotNull String key, @NotNull Class<T> type, @Nullable T def) {
-        return data.containsKey(key)
-                ? type.isAssignableFrom(data.get(key).getClass()) ? (T) data.get(key) : def
-                : def;
+        return data.containsKey(key) ? type.isAssignableFrom(data.get(key).getClass()) ? (T) data.get(key) : def : def;
     }
 
     /**
@@ -231,9 +229,7 @@ public class ConfigSection {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public @Nullable ConfigSection getSection(@NotNull String key) {
-        return data.containsKey(key)
-                ? data.get(key) instanceof Map map ? new ConfigSection(map) : null
-                : null;
+        return data.containsKey(key) ? data.get(key) instanceof Map map ? new ConfigSection(map) : null : null;
     }
 
     /**

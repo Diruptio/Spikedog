@@ -6,14 +6,14 @@ import java.util.Map;
 
 public class WatchdogThread extends Thread {
     public static final long MAX_SERVE_TIME = 10000;
-    private static final Map<ServeThread, Long> serveThreads = new HashMap<>();
+    private static final Map<ServeTask, Long> serveThreads = new HashMap<>();
 
     @Override
     public void run() {
         while (true) {
             try {
                 long now = System.currentTimeMillis();
-                for (ServeThread thread : new ArrayList<>(serveThreads.keySet())) {
+                for (ServeTask thread : new ArrayList<>(serveThreads.keySet())) {
                     if (thread.isInterrupted() || !thread.isAlive()) {
                         serveThreads.remove(thread);
                     } else if (now > serveThreads.get(thread) + MAX_SERVE_TIME) {
@@ -28,7 +28,7 @@ public class WatchdogThread extends Thread {
         }
     }
 
-    public static void guard(ServeThread serveThread) {
-        serveThreads.put(serveThread, System.currentTimeMillis());
+    public static void guard(ServeTask serveTask) {
+        serveThreads.put(serveTask, System.currentTimeMillis());
     }
 }

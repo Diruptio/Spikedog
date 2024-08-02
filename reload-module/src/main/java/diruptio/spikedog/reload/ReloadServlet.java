@@ -3,7 +3,7 @@ package diruptio.spikedog.reload;
 import diruptio.spikedog.HttpRequest;
 import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.Reload;
-import diruptio.spikedog.ServeThread;
+import diruptio.spikedog.ServeTask;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.function.BiConsumer;
@@ -32,6 +32,6 @@ public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
         response.setContent("<h1>Reloading modules...</h1>");
 
         // Reload
-        ServeThread.runAfterServe(new Reload());
+        ServeTask.runAfterServe(new Reload());
     }
 }

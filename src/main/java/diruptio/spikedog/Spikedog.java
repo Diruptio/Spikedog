@@ -46,7 +46,7 @@ public class Spikedog {
             }
 
             // Accept connections
-            while (true) new ServeThread(serverSocket.accept()).start();
+            while (true) new Thread(new ServeTask(serverSocket.accept())).start();
         } catch (IOException exception) {
             LOGGER.log(Level.SEVERE, "Spikedog crashed", exception);
             System.exit(1);
@@ -58,12 +58,9 @@ public class Spikedog {
     }
 
     public static void addServlet(
-            @NotNull String path,
-            @NotNull BiConsumer<HttpRequest, HttpResponse> servlet,
-            @NotNull String... methods) {
+            @NotNull String path, @NotNull BiConsumer<HttpRequest, HttpResponse> servlet, @NotNull String... methods) {
         servlets.add(new Servlet(path, servlet, methods));
     }
 
-    public record Servlet(
-            String path, BiConsumer<HttpRequest, HttpResponse> servlet, String[] methods) {}
+    public record Servlet(String path, BiConsumer<HttpRequest, HttpResponse> servlet, String[] methods) {}
 }

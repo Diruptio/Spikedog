@@ -21,10 +21,7 @@ public class SpikedogLogger extends Logger {
         PrintStream out = thrown == null ? System.out : System.err;
         System.out.printf(
                 "[%s] [%s/%s] %s\n",
-                dateFormat.format(new Date()),
-                record.getLoggerName(),
-                record.getLevel(),
-                record.getMessage());
+                dateFormat.format(new Date()), record.getLoggerName(), record.getLevel(), record.getMessage());
         if (thrown != null) {
             thrown.printStackTrace(out);
         }

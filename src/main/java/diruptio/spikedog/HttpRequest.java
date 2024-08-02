@@ -54,7 +54,6 @@ public class HttpRequest {
     }
 
     private static void decodeParameters(String parameters, HttpRequest request) {
-        System.out.println(parameters);
         for (String parameter : parameters.split("&")) {
             if (parameter.contains("=")) {
                 String[] parts = parameter.split("=", 2);

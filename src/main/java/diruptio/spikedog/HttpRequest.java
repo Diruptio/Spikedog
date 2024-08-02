@@ -57,17 +57,17 @@ public class HttpRequest {
         System.out.println(parameters);
         for (String parameter : parameters.split("&")) {
             if (parameter.contains("=")) {
-                String[] pieces = parameter.split("=", 2);
-                request.parameters.put(pieces[0], URLDecoder.decode(pieces[1], StandardCharsets.UTF_8));
+                String[] parts = parameter.split("=", 2);
+                request.parameters.put(parts[0], URLDecoder.decode(parts[1], StandardCharsets.UTF_8));
             } else request.parameters.put(parameter, "");
         }
     }
 
     private static void decodePath(String path, HttpRequest request) {
         if (path.contains("?")) {
-            String[] pieces = path.split("\\?", 2);
-            path = pieces[0];
-            decodeParameters(pieces[1], request);
+            String[] parts = path.split("\\?", 2);
+            path = parts[0];
+            decodeParameters(parts[1], request);
         }
         request.path = URLDecoder.decode(path, StandardCharsets.UTF_8);
     }
@@ -90,11 +90,11 @@ public class HttpRequest {
             HttpRequest request = new HttpRequest();
             int contentLength = -1;
             String requestLine = readLine(client);
-            String[] pieces = requestLine.split(" ");
-            if (pieces.length == 3) {
-                request.method = pieces[0];
-                decodePath(pieces[1], request);
-                request.httpVersion = pieces[2];
+            String[] parts = requestLine.split(" ");
+            if (parts.length == 3) {
+                request.method = parts[0];
+                decodePath(parts[1], request);
+                request.httpVersion = parts[2];
             } else return null;
 
             String header;
@@ -102,10 +102,10 @@ public class HttpRequest {
                 header = readLine(client);
                 if (header.isBlank()) break;
                 if (header.contains(": ")) {
-                    pieces = header.split(": ", 2);
-                    request.headers.put(pieces[0], pieces[1]);
-                    if (pieces[0].equalsIgnoreCase("Content-Length")) {
-                        contentLength = Integer.parseInt(pieces[1]);
+                    parts = header.split(": ", 2);
+                    request.headers.put(parts[0], parts[1]);
+                    if (parts[0].equalsIgnoreCase("Content-Length")) {
+                        contentLength = Integer.parseInt(parts[1]);
                     }
                 }
             }

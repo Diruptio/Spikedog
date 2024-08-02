@@ -29,7 +29,7 @@ public class ServeTask extends Thread {
             String address = ((InetSocketAddress) socketAddress).getHostString();
             for (Module module : ModuleLoader.getModules()) {
                 for (Listener listener : module.listeners()) {
-                    if (!listener.onConnect(client)) {
+                    if (!listener.allowConnection(client)) {
                         client.close();
                         return;
                     }

@@ -22,7 +22,13 @@ public interface Listener {
     /** Called when the module is unloaded. The Module should clean up everything that was initialized in onLoad. */
     default void onUnload() {}
 
-    default boolean onConnect(@NotNull SocketChannel client) {
+    /**
+     * Called when a client connects to the server. The Module should return true if the connection is allowed.
+     *
+     * @param client The client's socket channel
+     * @return {@code true} if the connection is allowed, {@code false} otherwise
+     */
+    default boolean allowConnection(@NotNull SocketChannel client) {
         return true;
     }
 }

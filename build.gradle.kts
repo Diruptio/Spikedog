@@ -5,7 +5,7 @@ plugins {
     id("application")
 }
 
-version = "1.2.7"
+version = "2.0.0-beta.1"
 group = "diruptio"
 
 repositories {
@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
+    implementation("io.netty:netty-all:4.1.113.Final")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.3")
 }
@@ -43,7 +44,6 @@ val generateSources =
 sourceSets.main.get().java.srcDir(generateSources.map { it.outputs })
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
     withSourcesJar()
     withJavadocJar()
 }
@@ -52,7 +52,7 @@ tasks {
     compileJava {
         dependsOn(generateSources)
         options.encoding = "UTF-8"
-        options.release = 17
+        options.release = 21
     }
 
     jar {

@@ -11,14 +11,10 @@ dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
 }
 
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
-}
-
 tasks {
     compileJava {
         options.encoding = "UTF-8"
-        options.release = 17
+        options.release = 21
     }
 
     jar {

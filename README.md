@@ -1,9 +1,8 @@
 Made in Germany <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flag_of_Germany.svg/2560px-Flag_of_Germany.svg.png" width="20"> with love <font color="red">❤</font> and beer 🍺.
 # Spikedog
-Spikedog is a **lightweight** open source **HTTP server**, optimized for **web services** and good **performance**.<br>
-Every **HTTP service / Servlet** is deployed from a **Module**.
-## Todos
-- [ ] Documentation
+Spikedog is a **lightweight** open source **HTTP server**, optimized for **web services** and good **performance**.
+## Requirements
+- Java 21 or higher
 ## Install
 Folder Structure:
 - directory
@@ -13,9 +12,9 @@ Folder Structure:
   - Spikedog.jar
   - start.sh
 ### Linux (bash)
-1. Install Java 17 or higher (root required)
+1. Install Java 21 or higher (root required)
    ```bash
-   sudo apt install openjdk-17-jdk
+   sudo apt install openjdk-21-jdk
    ```
 2. Install screen (root required)
    ```bash

@@ -86,6 +86,10 @@ public class HttpResponse {
         this.charset = charset;
     }
 
+    public int getContentLength() {
+        return charset == null ? content.getBytes().length : content.getBytes(charset).length;
+    }
+
     public byte[] toByteArray() {
         try {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();

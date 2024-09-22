@@ -4,4 +4,6 @@ package diruptio.spikedog;
 public class BuildConstants {
     /** The version of Spikedog. */
     public static final String VERSION = "${version}";
+
+    private BuildConstants() {}
 }

@@ -1,9 +1,14 @@
 package diruptio.spikedog;
 
 import diruptio.spikedog.logging.SpikedogLogger;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.channels.ServerSocketChannel;
+import diruptio.spikedog.network.HttpServerChannelInitializer;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +36,15 @@ public class Spikedog {
      * @param loadModules Whether to load modules from the modules directory
      */
     public static void listen(int port, @NotNull String bindAddress, boolean loadModules) {
-        WatchdogThread guardianThread = new WatchdogThread();
-        guardianThread.setDaemon(true);
-        guardianThread.start();
-
-        try (ServerSocketChannel serverSocket = ServerSocketChannel.open()) {
+        try {
             // Start server
-            serverSocket.bind(new InetSocketAddress(bindAddress, port));
+            EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+            bootstrap.group(group);
+            bootstrap.channel(Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class);
+            bootstrap.childHandler(new HttpServerChannelInitializer());
+            Channel channel = bootstrap.bind(port).sync().channel();
             LOGGER.info("Spikedog started on %s:%s".formatted(bindAddress, port));
 
             // Load modules
@@ -45,9 +52,9 @@ public class Spikedog {
                 ModuleLoader.loadModules(MODULES_DIRECTORY);
             }
 
-            // Accept connections
-            while (true) new Thread(new ServeTask(serverSocket.accept())).start();
-        } catch (IOException exception) {
+            channel.closeFuture().sync();
+            group.shutdownGracefully();
+        } catch (Throwable exception) {
             LOGGER.log(Level.SEVERE, "Spikedog crashed", exception);
             System.exit(1);
         }

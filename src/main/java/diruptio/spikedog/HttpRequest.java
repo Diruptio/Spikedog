@@ -1,5 +1,6 @@
 package diruptio.spikedog;
 
+import io.netty.handler.codec.http.FullHttpRequest;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
@@ -16,6 +17,22 @@ public class HttpRequest {
     private final Map<String, String> headers = new HashMap<>();
     private final Map<String, String> parameters = new HashMap<>();
     private String content;
+
+    public HttpRequest(@NotNull FullHttpRequest request) {
+        method = request.method().name();
+        path = request.uri();
+        httpVersion = request.protocolVersion().text();
+        for (Map.Entry<String, String> header : request.headers()) {
+            headers.put(header.getKey(), header.getValue());
+        }
+        content = request.content().toString(StandardCharsets.UTF_8);
+        String contentType = getHeader("Content-Type", "");
+        if (contentType.startsWith("application/x-www-form-urlencoded")) {
+            decodeParameters(content, this);
+        }
+    }
+
+    private HttpRequest() {}
 
     public @NotNull String getMethod() {
         return method;

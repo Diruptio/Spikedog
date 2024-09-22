@@ -32,6 +32,7 @@ public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
         response.setContent("<h1>Reloading modules...</h1>");
 
         // Reload
-        ServeTask.runAfterServe(new Reload());
+        ServeTask task = ServeTask.getTaskByRequest(request);
+        if (task != null) task.getFuture().thenRun(new Reload());
     }
 }

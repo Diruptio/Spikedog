@@ -1,6 +1,6 @@
 package diruptio.spikedog;
 
-import java.nio.channels.SocketChannel;
+import io.netty.channel.Channel;
 import org.jetbrains.annotations.NotNull;
 
 /** A listener for a module. */
@@ -28,7 +28,7 @@ public interface Listener {
      * @param client The client's socket channel
      * @return {@code true} if the connection is allowed, {@code false} otherwise
      */
-    default boolean allowConnection(@NotNull SocketChannel client) {
+    default boolean allowConnection(@NotNull Channel client) {
         return true;
     }
 }

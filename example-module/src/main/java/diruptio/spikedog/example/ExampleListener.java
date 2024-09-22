@@ -3,7 +3,8 @@ package diruptio.spikedog.example;
 import diruptio.spikedog.Listener;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.Spikedog;
-import java.nio.channels.SocketChannel;
+import io.netty.channel.Channel;
+import java.net.InetSocketAddress;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
@@ -46,8 +47,8 @@ public class ExampleListener implements Listener {
     }
 
     @Override
-    public boolean allowConnection(@NotNull SocketChannel client) {
+    public boolean allowConnection(@NotNull Channel client) {
         // Don't allow the request if the client is from a specific IP address
-        return !client.socket().getInetAddress().getHostAddress().equals("123.123.123.123");
+        return !((InetSocketAddress) client.remoteAddress()).getHostString().equals("123.123.123.123");
     }
 }

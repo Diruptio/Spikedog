@@ -9,12 +9,20 @@ import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/** Serves HTTP requests. */
 public class ServeTask implements Runnable {
     private static final Set<ServeTask> tasks = new HashSet<>();
     private final Channel channel;
     private final HttpRequest request;
     private final CompletableFuture<HttpResponse> future;
 
+    /**
+     * Creates a new {@link ServeTask}.
+     *
+     * @param channel The client's channel
+     * @param request The request
+     * @param future The callback to return a {@link HttpResponse}
+     */
     public ServeTask(
             @NotNull Channel channel, @NotNull HttpRequest request, @NotNull CompletableFuture<HttpResponse> future) {
         this.channel = channel;
@@ -88,18 +96,39 @@ public class ServeTask implements Runnable {
         complete(response);
     }
 
+    /**
+     * Gets the client's channel.
+     *
+     * @return The channel
+     */
     public @NotNull Channel getChannel() {
         return channel;
     }
 
+    /**
+     * Gets the request.
+     *
+     * @return The request
+     */
     public @NotNull CompletableFuture<HttpResponse> getFuture() {
         return future;
     }
 
+    /**
+     * Gets all running tasks.
+     *
+     * @return The tasks
+     */
     public static @NotNull Set<ServeTask> getTasks() {
         return tasks;
     }
 
+    /**
+     * Gets a task by its request.
+     *
+     * @param request The request
+     * @return The task or {@code null} if not found
+     */
     public static @Nullable ServeTask getTaskByRequest(@NotNull HttpRequest request) {
         for (ServeTask task : tasks) {
             if (task.request == request) {

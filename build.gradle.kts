@@ -5,7 +5,7 @@ plugins {
     id("application")
 }
 
-version = "2.0.0-beta.1"
+version = "2.0.0-beta.2"
 group = "diruptio"
 
 repositories {
@@ -15,7 +15,6 @@ repositories {
 dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
     implementation("io.netty:netty-all:4.1.113.Final")
-    implementation("io.netty:netty-codec-http2:4.1.113.Final")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.3")
     runtimeOnly("org.bouncycastle:bcpkix-jdk18on:1.78")

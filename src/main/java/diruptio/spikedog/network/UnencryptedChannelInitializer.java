@@ -8,7 +8,11 @@ import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 
-public class HttpServerChannelInitializer extends ChannelInitializer<SocketChannel> {
+/** Initializes a channel without SSL encryption. */
+public class UnencryptedChannelInitializer extends ChannelInitializer<SocketChannel> {
+    /** Creates a new {@link UnencryptedChannelInitializer}. */
+    public UnencryptedChannelInitializer() {}
+
     @Override
     protected void initChannel(SocketChannel channel) {
         channel.pipeline().addLast(new HttpServerCodec());

@@ -12,7 +12,11 @@ import io.netty.handler.codec.http.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+/** Handles HTTP/1.x requests. */
 public class Http1Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    /** Creates a new HTTP/1.x handler. */
+    public Http1Handler() {}
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) {
         // Handle Continue requests
@@ -23,10 +27,20 @@ public class Http1Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
         CompletableFuture<HttpResponse> future = new CompletableFuture<>();
         ServeTask task = new ServeTask(ctx.channel(), new HttpRequest(nettyRequest), future);
-        Thread thread = Thread.ofVirtual().unstarted(task);
         future.thenAccept(spikedogResponse -> {
             // Response received
             ServeTask.getTasks().remove(task);
+
+            // Set response headers
+            String contentType = spikedogResponse.getHeader("Content-Type");
+            if (contentType != null && spikedogResponse.getCharset() != null) {
+                spikedogResponse.setHeader("Content-Type", contentType + "; charset=" + spikedogResponse.getCharset());
+            }
+            spikedogResponse.setHeader("Content-Length", String.valueOf(spikedogResponse.getContentLength()));
+            spikedogResponse.setHeader("Server", "Spikedog/" + Spikedog.VERSION.get());
+            spikedogResponse.setHeader("Access-Control-Allow-Origin", "*");
+
+            // Write response
             HttpResponseStatus status =
                     new HttpResponseStatus(spikedogResponse.getStatusCode(), spikedogResponse.getStatusMessage());
             ByteBuf content = ctx.alloc().buffer();
@@ -38,14 +52,11 @@ public class Http1Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
             // Response timed out
             HttpResponse response = new HttpResponse();
             response.setStatus(522, "Connection Timed Out");
-            response.setHeader("Content-Type", "text/html; charset=UTF-8");
-            response.setHeader("Content-Length", String.valueOf(response.getContentLength()));
-            response.setHeader("Server", "Spikedog/" + Spikedog.VERSION.get());
-            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Content-Type", "text/html");
             response.setContent("<h1>522 Connection Timed Out</h1>");
             future.complete(response);
         });
-        thread.start();
+        task.run();
     }
 
     @Override

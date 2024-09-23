@@ -51,11 +51,11 @@ public class Spikedog {
      *
      * @param port The port to listen on
      * @param bindAddress The address to bind to
-     * @param encrypted Whether to use encrypted connections. If true, a self-signed SSL certificate will be created and
-     *     HTTP 2 will be supported. Otherwise, only HTTP 1 will be supported.
+     * @param useSsl Whether to use SSL. If true, a self-signed SSL certificate will be created to encrypt connections
+     *     and HTTP 2 will be supported. Otherwise, only HTTP 1 will be supported.
      * @param loadModules Whether to load modules from the modules directory
      */
-    public static void listen(int port, @NotNull String bindAddress, boolean encrypted, boolean loadModules) {
+    public static void listen(int port, @NotNull String bindAddress, boolean useSsl, boolean loadModules) {
         try {
             // Start server
             EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
@@ -63,13 +63,13 @@ public class Spikedog {
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
             bootstrap.group(group);
             bootstrap.channel(Epoll.isAvailable() ? EpollServerSocketChannel.class : NioServerSocketChannel.class);
-            if (encrypted) {
+            if (useSsl) {
                 bootstrap.childHandler(new EncryptedChannelInitializer(createSslContext()));
             } else {
                 bootstrap.childHandler(new UnencryptedChannelInitializer());
             }
             Channel channel = bootstrap.bind(port).sync().channel();
-            LOGGER.info("Spikedog listens %sencrypted on %s:%s".formatted(encrypted ? "" : "un", bindAddress, port));
+            LOGGER.info("Spikedog listens on http%s://%s:%s".formatted(useSsl ? "s" : "", bindAddress, port));
 
             // Load modules
             if (loadModules) {

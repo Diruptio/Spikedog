@@ -69,7 +69,12 @@ public class Spikedog {
                 bootstrap.childHandler(new UnencryptedChannelInitializer());
             }
             Channel channel = bootstrap.bind(port).sync().channel();
-            LOGGER.info("Spikedog listens on http%s://%s:%s".formatted(useSsl ? "s" : "", bindAddress, port));
+
+            StringBuilder url = new StringBuilder("http");
+            if (useSsl) url.append("s");
+            url.append("://").append(bindAddress);
+            if (useSsl ? port != 443 : port != 80) url.append(":").append(port);
+            LOGGER.info("Spikedog listens on " + url);
 
             // Load modules
             if (loadModules) {

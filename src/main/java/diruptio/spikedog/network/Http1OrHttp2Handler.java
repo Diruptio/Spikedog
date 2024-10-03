@@ -11,9 +11,9 @@ import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
  * A handler that chooses between HTTP/2 and HTTP/1.x based on the protocol that is chosen by
  * {@link ApplicationProtocolNegotiationHandler}.
  */
-public class Http2OrHttpHandler extends ApplicationProtocolNegotiationHandler {
-    /** Creates a new {@link Http2OrHttpHandler}. */
-    public Http2OrHttpHandler() {
+public class Http1OrHttp2Handler extends ApplicationProtocolNegotiationHandler {
+    /** Creates a new {@link Http1OrHttp2Handler}. */
+    public Http1OrHttp2Handler() {
         super(ApplicationProtocolNames.HTTP_2);
     }
 

@@ -64,14 +64,13 @@ public class ServeTask implements Runnable {
         }
 
         String address = ((InetSocketAddress) channel.remoteAddress()).getHostString();
-        Spikedog.LOGGER.info(
-                "Received request from %s: %s %s".formatted(address, request.getMethod(), request.getPath()));
+        Spikedog.LOGGER.info("Received request from %s: %s %s".formatted(address, request.method(), request.method()));
 
         // Search for servlet
         for (Spikedog.Servlet servlet : Spikedog.getServlets()) {
-            if (servlet.path().equals(request.getPath())
+            if (servlet.path().equals(request.queryString().path())
                     && (servlet.methods().length == 0
-                            || List.of(servlet.methods()).contains(request.getMethod()))) {
+                            || List.of(servlet.methods()).contains(request.method()))) {
                 HttpResponse response = new HttpResponse();
                 try {
                     servlet.servlet().accept(request, response);

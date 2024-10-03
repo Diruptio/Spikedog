@@ -10,6 +10,7 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.*;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
@@ -114,9 +115,11 @@ public class Spikedog {
     }
 
     public static void addServlet(
-            @NotNull String path, @NotNull BiConsumer<HttpRequest, HttpResponse> servlet, @NotNull String... methods) {
+            @NotNull String path,
+            @NotNull BiConsumer<HttpRequest, HttpResponse> servlet,
+            @NotNull HttpMethod... methods) {
         servlets.add(new Servlet(path, servlet, methods));
     }
 
-    public record Servlet(String path, BiConsumer<HttpRequest, HttpResponse> servlet, String[] methods) {}
+    public record Servlet(String path, BiConsumer<HttpRequest, HttpResponse> servlet, HttpMethod[] methods) {}
 }

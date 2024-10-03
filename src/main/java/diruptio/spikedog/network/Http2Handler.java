@@ -46,7 +46,17 @@ public class Http2Handler extends ChannelDuplexHandler {
             @NotNull Http2HeadersFrame headersFrame,
             @Nullable Http2DataFrame dataFrame) {
         CompletableFuture<HttpResponse> future = new CompletableFuture<>();
-        ServeTask task = new ServeTask(ctx.channel(), new HttpRequest(headersFrame, dataFrame), future);
+        HttpRequest request;
+        try {
+            request = new HttpRequest(headersFrame, dataFrame);
+        } catch (Throwable ignored) {
+            HttpResponse response = new HttpResponse();
+            response.setStatus(400, "Bad Request");
+            response.setContent("<h1>400 Bad Request</h1>");
+            future.complete(response);
+            return;
+        }
+        ServeTask task = new ServeTask(ctx.channel(), request, future);
         future.thenAccept(response -> {
             // Set response headers
             String contentType = response.getHeader("Content-Type");

@@ -22,9 +22,9 @@ import org.jetbrains.annotations.Nullable;
 
 /** A HTTP request. */
 public class HttpRequest {
+    private final String version;
     private final HttpMethod method;
     private final QueryString queryString;
-    private final String version;
     private final Map<String, String> headers = new HashMap<>();
     private final ByteBuf content;
     private final Map<String, List<String>> parameters;
@@ -92,6 +92,15 @@ public class HttpRequest {
     }
 
     /**
+     * Gets the version of the request.
+     *
+     * @return The HTTP version
+     */
+    public @NotNull String version() {
+        return version;
+    }
+
+    /**
      * Gets the method of the request.
      *
      * @return The method
@@ -107,15 +116,6 @@ public class HttpRequest {
      */
     public @NotNull QueryString queryString() {
         return queryString;
-    }
-
-    /**
-     * Gets the version of the request.
-     *
-     * @return The version
-     */
-    public @NotNull String version() {
-        return version;
     }
 
     /**

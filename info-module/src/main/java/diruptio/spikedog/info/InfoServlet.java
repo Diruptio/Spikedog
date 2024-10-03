@@ -5,6 +5,7 @@ import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.ModuleLoader;
 import diruptio.spikedog.Spikedog;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -22,17 +23,16 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
 
             if (!auth.equals(request.header("Authorization"))) {
                 // Unauthorized
-                response.setStatus(401, "Unauthorized");
-                response.setHeader("Content-Type", "text/html");
-                response.setHeader("WWW-Authenticate", "Basic charset=\"UTF-8\"");
-                response.setContent("<h1>Unauthorized</h1>");
+                response.status(HttpResponseStatus.UNAUTHORIZED);
+                response.header("Content-Type", "text/html");
+                response.header("WWW-Authenticate", "Basic charset=\"UTF-8\"");
+                response.content("<h1>Unauthorized</h1>");
                 return;
             }
         }
 
         // Success
-        response.setStatus(200, "OK");
-        response.setHeader("Content-Type", "text/html");
+        response.header("Content-Type", "text/html");
         StringBuilder content = new StringBuilder("<html>");
         content.append("<head><title>Spikedog Info</title></head>");
         content.append("<body>");
@@ -52,6 +52,6 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
         }
         content.append("</body>");
         content.append("</html>");
-        response.setContent(content.toString());
+        response.content(content);
     }
 }

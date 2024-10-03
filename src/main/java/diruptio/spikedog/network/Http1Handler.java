@@ -4,7 +4,6 @@ import diruptio.spikedog.HttpRequest;
 import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.ServeTask;
 import diruptio.spikedog.Spikedog;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -27,33 +26,31 @@ public class Http1Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
         CompletableFuture<HttpResponse> future = new CompletableFuture<>();
         ServeTask task = new ServeTask(ctx.channel(), new HttpRequest(nettyRequest), future);
-        future.thenAccept(spikedogResponse -> {
+        future.thenAccept(response -> {
             // Response received
             ServeTask.getTasks().remove(task);
 
             // Set response headers
-            String contentType = spikedogResponse.getHeader("Content-Type");
-            if (contentType != null && spikedogResponse.getCharset() != null) {
-                spikedogResponse.setHeader("Content-Type", contentType + "; charset=" + spikedogResponse.getCharset());
+            String contentType = response.header("Content-Type");
+            if (contentType != null && response.charset() != null) {
+                response.header("Content-Type", contentType + "; charset=" + response.charset());
             }
-            spikedogResponse.setHeader("Content-Length", String.valueOf(spikedogResponse.getContentLength()));
-            spikedogResponse.setHeader("Server", "Spikedog/" + Spikedog.VERSION.get());
-            spikedogResponse.setHeader("Access-Control-Allow-Origin", "*");
+            response.header("Content-Length", String.valueOf(response.getContentLength()));
+            response.header("Server", "Spikedog/" + Spikedog.VERSION.get());
+            response.header("Access-Control-Allow-Origin", "*");
 
             // Write response
-            HttpResponseStatus status =
-                    new HttpResponseStatus(spikedogResponse.getStatusCode(), spikedogResponse.getStatusMessage());
-            ByteBuf content = ctx.alloc().buffer();
-            content.writeBytes(spikedogResponse.getContent().getBytes());
-            FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
+            FullHttpResponse nettyResponse =
+                    new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, response.status(), response.content());
             ctx.writeAndFlush(nettyResponse).addListener(ChannelFutureListener.CLOSE);
         });
         future.orTimeout(30, TimeUnit.SECONDS).thenRun(() -> {
             // Response timed out
-            HttpResponse response = new HttpResponse();
-            response.setStatus(522, "Connection Timed Out");
-            response.setHeader("Content-Type", "text/html");
-            response.setContent("<h1>522 Connection Timed Out</h1>");
+            HttpResponse response =
+                    new HttpResponse(nettyRequest.protocolVersion().text());
+            response.status(new HttpResponseStatus(522, "Connection Timed Out"));
+            response.header("Content-Type", "text/html");
+            response.content("<h1>522 Connection Timed Out</h1>");
             future.complete(response);
         });
         task.run();

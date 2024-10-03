@@ -1,7 +1,8 @@
 package diruptio.spikedog;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
@@ -9,117 +10,140 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/** A HTTP response. */
 public class HttpResponse {
-    private String httpVersion = "HTTP/1.1";
-    private int statusCode = 200;
-    private String statusMessage = "OK";
+    private final String version;
+    private HttpResponseStatus status = HttpResponseStatus.OK;
     private Map<String, String> headers = new LinkedHashMap<>();
-    private String content = "";
+    private ByteBuf content = Unpooled.buffer();
     private Charset charset = StandardCharsets.UTF_8;
 
-    public HttpResponse() {
+    /**
+     * Creates a new HTTP response.
+     *
+     * @param version The HTTP version
+     */
+    public HttpResponse(@NotNull String version) {
+        this.version = version;
         headers.put("Content-Type", "text/plain");
     }
 
-    public @NotNull String getHttpVersion() {
-        return httpVersion;
+    /**
+     * Gets the version of the response.
+     *
+     * @return The HTTP version
+     */
+    public @NotNull String version() {
+        return version;
     }
 
-    public void setHttpVersion(@NotNull String httpVersion) {
-        this.httpVersion = httpVersion;
+    /**
+     * Gets the status code of the response.
+     *
+     * @return The status code
+     */
+    public @NotNull HttpResponseStatus status() {
+        return status;
     }
 
-    public int getStatusCode() {
-        return statusCode;
+    /**
+     * Sets the status code of the response.
+     *
+     * @param status The status code
+     */
+    public void status(@NotNull HttpResponseStatus status) {
+        this.status = status;
     }
 
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public @NotNull String getStatusMessage() {
-        return statusMessage;
-    }
-
-    public void setStatusMessage(@NotNull String statusMessage) {
-        this.statusMessage = statusMessage;
-    }
-
-    public void setStatus(int statusCode, @NotNull String statusMessage) {
-        this.statusMessage = statusMessage;
-        this.statusCode = statusCode;
-    }
-
-    public @NotNull Map<String, String> getHeaders() {
+    /**
+     * Gets the headers of the response.
+     *
+     * @return The headers
+     */
+    public @NotNull Map<String, String> headers() {
         return headers;
     }
 
-    public void setHeaders(@NotNull Map<String, String> headers) {
+    /**
+     * Sets the headers of the response.
+     *
+     * @param headers The headers
+     */
+    public void headers(@NotNull Map<String, String> headers) {
         this.headers = headers;
     }
 
-    public @Nullable String getHeader(@NotNull String key) {
-        return headers.get(key);
+    /**
+     * Gets a header value by its name.
+     *
+     * @param name The header name
+     * @return The header value, or {@code null} if not found
+     */
+    public @Nullable String header(@NotNull String name) {
+        return headers.get(name);
     }
 
-    public @NotNull String getHeader(@NotNull String key, @NotNull String defaultValue) {
-        return headers.getOrDefault(key, defaultValue);
+    /**
+     * Sets a header.
+     *
+     * @param name The header name
+     * @param value The header value
+     */
+    public void header(@NotNull String name, @NotNull String value) {
+        headers.put(name, value);
     }
 
-    public void setHeader(@NotNull String key, @NotNull String value) {
-        headers.put(key, value);
-    }
-
-    public @NotNull String getContent() {
+    /**
+     * Gets the content of the response.
+     *
+     * @return The content
+     */
+    public @NotNull ByteBuf content() {
         return content;
     }
 
-    public void setContent(@NotNull String content) {
+    /**
+     * Sets the content of the response.
+     *
+     * @param content The content
+     */
+    public void content(@NotNull ByteBuf content) {
         this.content = content;
     }
 
-    public @Nullable Charset getCharset() {
+    /**
+     * Sets the content of the response.
+     *
+     * @param content The content
+     */
+    public void content(@NotNull CharSequence content) {
+        this.content = Unpooled.copiedBuffer(content, charset);
+    }
+
+    /**
+     * Gets the charset of the response.
+     *
+     * @return The charset
+     */
+    public @Nullable Charset charset() {
         return charset;
     }
 
-    public void setCharset(@Nullable Charset charset) {
+    /**
+     * Sets the charset of the response.
+     *
+     * @param charset The charset
+     */
+    public void charset(@Nullable Charset charset) {
         this.charset = charset;
     }
 
+    /**
+     * Gets the length of the content.
+     *
+     * @return The content length
+     */
     public int getContentLength() {
-        return charset == null ? content.getBytes().length : content.getBytes(charset).length;
-    }
-
-    public byte[] toByteArray() {
-        try {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            stream.writeBytes(httpVersion.getBytes(StandardCharsets.US_ASCII));
-            stream.writeBytes(" ".getBytes(StandardCharsets.US_ASCII));
-            stream.writeBytes(String.valueOf(statusCode).getBytes(StandardCharsets.US_ASCII));
-            stream.writeBytes(" ".getBytes(StandardCharsets.US_ASCII));
-            stream.writeBytes(statusMessage.getBytes(StandardCharsets.US_ASCII));
-            stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
-            headers.forEach((key, value) -> {
-                stream.writeBytes(key.getBytes(StandardCharsets.US_ASCII));
-                stream.writeBytes(": ".getBytes(StandardCharsets.US_ASCII));
-                stream.writeBytes(value.getBytes(StandardCharsets.US_ASCII));
-                if (key.equalsIgnoreCase("Content-Type") && charset != null) {
-                    stream.writeBytes("; charset=".getBytes(StandardCharsets.US_ASCII));
-                    stream.writeBytes(charset.name().getBytes(StandardCharsets.US_ASCII));
-                }
-                stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
-            });
-            stream.writeBytes("\r\n".getBytes(StandardCharsets.US_ASCII));
-            if (charset != null) {
-                stream.writeBytes(content.getBytes(charset));
-            } else {
-                stream.writeBytes(content.getBytes());
-            }
-            byte[] bytes = stream.toByteArray();
-            stream.close();
-            return bytes;
-        } catch (IOException ignored) {
-            return new byte[0];
-        }
+        return content.readableBytes();
     }
 }

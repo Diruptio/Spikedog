@@ -4,11 +4,10 @@ import diruptio.spikedog.HttpRequest;
 import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.ServeTask;
 import diruptio.spikedog.Spikedog;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.*;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -50,47 +49,43 @@ public class Http2Handler extends ChannelDuplexHandler {
         try {
             request = new HttpRequest(headersFrame, dataFrame);
         } catch (Throwable ignored) {
-            HttpResponse response = new HttpResponse();
-            response.setStatus(400, "Bad Request");
-            response.setContent("<h1>400 Bad Request</h1>");
+            HttpResponse response = new HttpResponse("HTTP/2");
+            response.status(HttpResponseStatus.BAD_REQUEST);
+            response.content("<h1>400 Bad Request</h1>");
             future.complete(response);
             return;
         }
         ServeTask task = new ServeTask(ctx.channel(), request, future);
         future.thenAccept(response -> {
             // Set response headers
-            String contentType = response.getHeader("Content-Type");
-            if (contentType != null && response.getCharset() != null) {
-                response.setHeader("Content-Type", contentType + "; charset=" + response.getCharset());
+            String contentType = response.header("Content-Type");
+            if (contentType != null && response.charset() != null) {
+                response.header("Content-Type", contentType + "; charset=" + response.charset());
             }
-            response.setHeader("Content-Length", String.valueOf(response.getContentLength()));
-            response.setHeader("Server", "Spikedog/" + Spikedog.VERSION.get());
-            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.header("Content-Length", String.valueOf(response.getContentLength()));
+            response.header("Server", "Spikedog/" + Spikedog.VERSION.get());
+            response.header("Access-Control-Allow-Origin", "*");
 
             // Write headers
             DefaultHttp2Headers headers = new DefaultHttp2Headers();
-            headers.status(String.valueOf(response.getStatusCode()));
-            for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
+            headers.status(response.status().codeAsText());
+            for (Map.Entry<String, String> entry : response.headers().entrySet()) {
                 headers.add(entry.getKey().toLowerCase(), entry.getValue());
             }
-            String content = response.getContent();
             ctx.write(new DefaultHttp2HeadersFrame(headers).stream(headersFrame.stream()));
 
             // Write data
-            if (!content.isEmpty()) {
-                ByteBuf byteBuf = ctx.alloc().buffer();
-                Charset charset = response.getCharset();
-                byteBuf.writeBytes(charset == null ? content.getBytes() : content.getBytes(charset));
-                ctx.write(new DefaultHttp2DataFrame(byteBuf, true).stream(headersFrame.stream()));
+            if (response.content().readableBytes() > 0) {
+                ctx.write(new DefaultHttp2DataFrame(response.content(), true).stream(headersFrame.stream()));
             }
         });
         future.orTimeout(30, TimeUnit.SECONDS).thenRun(() -> {
             // Response timed out
             // thread.interrupt();
-            HttpResponse response = new HttpResponse();
-            response.setStatus(522, "Connection Timed Out");
-            response.setHeader("Content-Type", "text/html");
-            response.setContent("<h1>522 Connection Timed Out</h1>");
+            HttpResponse response = new HttpResponse("HTTP/2");
+            response.status(new HttpResponseStatus(522, "Connection Timed Out"));
+            response.header("Content-Type", "text/html");
+            response.content("<h1>522 Connection Timed Out</h1>");
             future.complete(response);
         });
         task.run();

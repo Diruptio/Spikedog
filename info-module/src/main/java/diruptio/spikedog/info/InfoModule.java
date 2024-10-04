@@ -23,7 +23,7 @@ public class InfoModule implements Listener {
             config.save();
         }
 
-        Spikedog.addServlet("/info", new InfoServlet());
+        Spikedog.register(new InfoEndpoint());
     }
 
     public static Config getConfig() {

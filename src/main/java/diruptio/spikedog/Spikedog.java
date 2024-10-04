@@ -1,5 +1,7 @@
 package diruptio.spikedog;
 
+import com.google.common.collect.Lists;
+import com.google.common.reflect.ClassPath;
 import diruptio.spikedog.logging.SpikedogLogger;
 import diruptio.spikedog.network.EncryptedChannelInitializer;
 import diruptio.spikedog.network.UnencryptedChannelInitializer;
@@ -10,15 +12,15 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.ssl.*;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.logging.*;
 import javax.net.ssl.SSLException;
@@ -33,7 +35,8 @@ public class Spikedog {
     /** The directory where modules are stored */
     public static final Path MODULES_DIRECTORY = Path.of("modules");
 
-    private static final List<Servlet> servlets = new ArrayList<>();
+    private static final DefaultEndpointProvider defaultEndpointProvider = new DefaultEndpointProvider();
+    private static final List<EndpointProvider> endpointProviders = Lists.newArrayList(defaultEndpointProvider);
 
     /**
      * The main method of Spikedog
@@ -95,31 +98,94 @@ public class Spikedog {
             SslProvider provider =
                     SslProvider.isAlpnSupported(SslProvider.OPENSSL) ? SslProvider.OPENSSL : SslProvider.JDK;
             SelfSignedCertificate certificate = new SelfSignedCertificate();
-            return SslContextBuilder.forServer(certificate.certificate(), certificate.privateKey())
+            return SslContextBuilder.forServer(certificate.certificate(), certificate.privateKey(), null)
                     .sslProvider(provider)
                     .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
                     .applicationProtocolConfig(new ApplicationProtocolConfig(
                             ApplicationProtocolConfig.Protocol.ALPN,
                             ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
                             ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                            ApplicationProtocolNames.HTTP_2,
-                            ApplicationProtocolNames.HTTP_1_1))
+                            ApplicationProtocolNames.HTTP_2))
                     .build();
         } catch (SSLException | CertificateException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static @NotNull List<Servlet> getServlets() {
-        return servlets;
+    /**
+     * Registers an endpoint with the specified path and methods.
+     *
+     * @param path The path
+     * @param endpoint The endpoint
+     * @param methods The methods ({@code "GET"}, {@code "POST"}, etc.) or an empty array for all methods
+     */
+    public static void register(@NotNull String path, @NotNull HttpEndpoint endpoint, @NotNull String... methods) {
+        defaultEndpointProvider.getEndpoints().put(new RegisteredEndpoint(path, methods), endpoint);
     }
 
-    public static void addServlet(
-            @NotNull String path,
-            @NotNull BiConsumer<HttpRequest, HttpResponse> servlet,
-            @NotNull HttpMethod... methods) {
-        servlets.add(new Servlet(path, servlet, methods));
+    /**
+     * Registers all endpoints in the specified object.
+     *
+     * @param object The object
+     */
+    public static void register(@NotNull Object object) {
+        for (Method method : object.getClass().getMethods()) {
+            Endpoint endpoint = method.getAnnotation(Endpoint.class);
+            if (endpoint != null) {
+                register(endpoint.path(), new RegisteredHttpEndpoint(method, object), endpoint.methods());
+            }
+        }
     }
 
-    public record Servlet(String path, BiConsumer<HttpRequest, HttpResponse> servlet, HttpMethod[] methods) {}
+    /**
+     * Registers all endpoints in the specified package.
+     *
+     * @param packageName The package name
+     */
+    public static void registerPackage(@NotNull String packageName) {
+        try {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            for (ClassPath.ClassInfo classInfo : ClassPath.from(classLoader).getTopLevelClassesRecursive(packageName)) {
+                register(classInfo.load().getDeclaredConstructor().newInstance());
+            }
+        } catch (IOException | ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Gets the default endpoint provider.
+     *
+     * @return The default endpoint provider
+     */
+    public static @NotNull DefaultEndpointProvider getDefaultEndpointProvider() {
+        return defaultEndpointProvider;
+    }
+
+    /**
+     * Gets the endpoint providers.
+     *
+     * @return The endpoint providers
+     */
+    public static @NotNull List<EndpointProvider> getEndpointProviders() {
+        return endpointProviders;
+    }
+
+    private record RegisteredEndpoint(@NotNull String path, @NotNull String[] methods) implements Endpoint {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Endpoint.class;
+        }
+    }
+
+    private record RegisteredHttpEndpoint(@NotNull Method method, @NotNull Object object) implements HttpEndpoint {
+        @Override
+        public void handle(@NotNull HttpRequest request, @NotNull HttpResponse response) {
+            try {
+                method.invoke(object, request, response);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

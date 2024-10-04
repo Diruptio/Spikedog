@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 public class HttpResponse {
     private final String version;
     private HttpResponseStatus status = HttpResponseStatus.OK;
-    private Map<String, String> headers = new LinkedHashMap<>();
+    private Map<CharSequence, CharSequence> headers = new LinkedHashMap<>();
     private ByteBuf content = Unpooled.buffer();
     private Charset charset = StandardCharsets.UTF_8;
 
@@ -60,7 +60,7 @@ public class HttpResponse {
      *
      * @return The headers
      */
-    public @NotNull Map<String, String> headers() {
+    public @NotNull Map<CharSequence, CharSequence> headers() {
         return headers;
     }
 
@@ -69,7 +69,7 @@ public class HttpResponse {
      *
      * @param headers The headers
      */
-    public void headers(@NotNull Map<String, String> headers) {
+    public void headers(@NotNull Map<CharSequence, CharSequence> headers) {
         this.headers = headers;
     }
 
@@ -79,7 +79,7 @@ public class HttpResponse {
      * @param name The header name
      * @return The header value, or {@code null} if not found
      */
-    public @Nullable String header(@NotNull String name) {
+    public @Nullable CharSequence header(@NotNull CharSequence name) {
         return headers.get(name);
     }
 
@@ -89,7 +89,7 @@ public class HttpResponse {
      * @param name The header name
      * @param value The header value
      */
-    public void header(@NotNull String name, @NotNull String value) {
+    public void header(@NotNull CharSequence name, @NotNull CharSequence value) {
         headers.put(name, value);
     }
 

@@ -5,9 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2HeadersFrame;
 import java.net.URI;
@@ -25,7 +23,7 @@ public class HttpRequest {
     private final String version;
     private final HttpMethod method;
     private final QueryString queryString;
-    private final Map<String, String> headers = new HashMap<>();
+    private final Map<CharSequence, CharSequence> headers = new HashMap<>();
     private final ByteBuf content;
     private final Map<String, List<String>> parameters;
 
@@ -48,7 +46,9 @@ public class HttpRequest {
         }
         content = Unpooled.wrappedUnmodifiableBuffer(request.content());
         parameters = queryString.parameters;
-        if (header("Content-Type", "").startsWith("application/x-www-form-urlencoded")) {
+        if (header(HttpHeaderNames.CONTENT_TYPE, "")
+                .toString()
+                .startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())) {
             decodeParameters(content.toString(), this);
         }
     }
@@ -82,7 +82,9 @@ public class HttpRequest {
             content = new EmptyByteBuf(UnpooledByteBufAllocator.DEFAULT);
         }
         parameters = queryString.parameters;
-        if (header("Content-Type", "").startsWith("application/x-www-form-urlencoded")) {
+        if (header(HttpHeaderNames.CONTENT_TYPE, "")
+                .toString()
+                .startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())) {
             decodeParameters(content.toString(), this);
         }
     }
@@ -119,7 +121,7 @@ public class HttpRequest {
      *
      * @return The headers
      */
-    public @NotNull Map<String, String> headers() {
+    public @NotNull Map<CharSequence, CharSequence> headers() {
         return headers;
     }
 
@@ -129,7 +131,7 @@ public class HttpRequest {
      * @param key The key of the header
      * @return The header value, or {@code null} if not found
      */
-    public @Nullable String header(@NotNull String key) {
+    public @Nullable CharSequence header(@NotNull CharSequence key) {
         return headers.get(key);
     }
 
@@ -140,7 +142,7 @@ public class HttpRequest {
      * @param defaultValue The default value if the header is not found
      * @return The header value, or the default value if not found
      */
-    public @NotNull String header(@NotNull String key, @NotNull String defaultValue) {
+    public @NotNull CharSequence header(@NotNull CharSequence key, @NotNull CharSequence defaultValue) {
         return headers.getOrDefault(key, defaultValue);
     }
 

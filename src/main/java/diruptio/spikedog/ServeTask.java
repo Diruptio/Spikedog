@@ -66,7 +66,8 @@ public class ServeTask implements Runnable {
         }
 
         String address = ((InetSocketAddress) channel.remoteAddress()).getHostString();
-        Spikedog.LOGGER.info("Received request from %s: %s %s".formatted(address, request.method(), request.method()));
+        Spikedog.LOGGER.info("Request from %s: %s %s"
+                .formatted(address, request.method(), request.queryString().path()));
 
         // Search for servlet
         for (Spikedog.Servlet servlet : Spikedog.getServlets()) {

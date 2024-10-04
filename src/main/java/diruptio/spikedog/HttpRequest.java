@@ -58,19 +58,15 @@ public class HttpRequest {
      *
      * @param headersFrame The Netty HTTP/2 headers frame
      * @param dataFrame The Netty HTTP/2 data frame
-     * @throws IllegalArgumentException If the method is not found
      * @throws IllegalArgumentException If the URI is invalid
      */
     public HttpRequest(@NotNull Http2HeadersFrame headersFrame, @Nullable Http2DataFrame dataFrame) {
-        method = HttpMethod.valueOf((String) headersFrame.headers().method());
-        if (method == null) {
-            throw new IllegalArgumentException("Method not found");
-        }
+        method = HttpMethod.valueOf(headersFrame.headers().method().toString());
         try {
             queryString = QueryString.parse(new URI(
-                    (String) headersFrame.headers().scheme(),
-                    (String) headersFrame.headers().authority(),
-                    (String) headersFrame.headers().path()));
+                    headersFrame.headers().scheme().toString(),
+                    headersFrame.headers().authority().toString(),
+                    headersFrame.headers().path().toString()));
         } catch (URISyntaxException ignored) {
             throw new IllegalArgumentException("Invalid URI");
         }

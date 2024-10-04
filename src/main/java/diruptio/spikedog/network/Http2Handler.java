@@ -45,17 +45,6 @@ public class Http2Handler extends ChannelDuplexHandler {
             @NotNull Http2HeadersFrame headersFrame,
             @Nullable Http2DataFrame dataFrame) {
         CompletableFuture<HttpResponse> future = new CompletableFuture<>();
-        HttpRequest request;
-        try {
-            request = new HttpRequest(headersFrame, dataFrame);
-        } catch (Throwable ignored) {
-            HttpResponse response = new HttpResponse("HTTP/2");
-            response.status(HttpResponseStatus.BAD_REQUEST);
-            response.content("<h1>400 Bad Request</h1>");
-            future.complete(response);
-            return;
-        }
-        ServeTask task = new ServeTask(ctx.channel(), request, future);
         future.thenAccept(response -> {
             // Set response headers
             String contentType = response.header("Content-Type");
@@ -81,14 +70,23 @@ public class Http2Handler extends ChannelDuplexHandler {
         });
         future.orTimeout(30, TimeUnit.SECONDS).thenRun(() -> {
             // Response timed out
-            // thread.interrupt();
             HttpResponse response = new HttpResponse("HTTP/2");
             response.status(new HttpResponseStatus(522, "Connection Timed Out"));
             response.header("Content-Type", "text/html");
             response.content("<h1>522 Connection Timed Out</h1>");
             future.complete(response);
         });
-        task.run();
+        HttpRequest request;
+        try {
+            request = new HttpRequest(headersFrame, dataFrame);
+        } catch (Throwable ignored) {
+            HttpResponse response = new HttpResponse("HTTP/2");
+            response.status(HttpResponseStatus.BAD_REQUEST);
+            response.content("<h1>400 Bad Request</h1>");
+            future.complete(response);
+            return;
+        }
+        new ServeTask(ctx.channel(), request, future).run();
     }
 
     @Override

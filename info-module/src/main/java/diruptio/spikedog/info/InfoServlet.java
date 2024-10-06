@@ -5,6 +5,9 @@ import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.ModuleLoader;
 import diruptio.spikedog.Spikedog;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -20,19 +23,19 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
             byte[] bytes = password.getBytes(StandardCharsets.UTF_8);
             String auth = "Basic " + Base64.getEncoder().encodeToString(bytes);
 
-            if (!auth.equals(request.getHeader("Authorization"))) {
+            CharSequence authorization = request.header(HttpHeaderNames.AUTHORIZATION);
+            if (authorization == null || !auth.contentEquals(authorization)) {
                 // Unauthorized
-                response.setStatus(401, "Unauthorized");
-                response.setHeader("Content-Type", "text/html");
-                response.setHeader("WWW-Authenticate", "Basic charset=\"UTF-8\"");
-                response.setContent("<h1>Unauthorized</h1>");
+                response.status(HttpResponseStatus.UNAUTHORIZED);
+                response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
+                response.header(HttpHeaderNames.WWW_AUTHENTICATE, "Basic charset=\"UTF-8\"");
+                response.content("<h1>Unauthorized</h1>");
                 return;
             }
         }
 
         // Success
-        response.setStatus(200, "OK");
-        response.setHeader("Content-Type", "text/html");
+        response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
         StringBuilder content = new StringBuilder("<html>");
         content.append("<head><title>Spikedog Info</title></head>");
         content.append("<body>");
@@ -52,6 +55,6 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
         }
         content.append("</body>");
         content.append("</html>");
-        response.setContent(content.toString());
+        response.content(content);
     }
 }

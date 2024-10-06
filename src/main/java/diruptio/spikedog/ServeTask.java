@@ -1,6 +1,9 @@
 package diruptio.spikedog;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.List;
@@ -28,17 +31,15 @@ public class ServeTask implements Runnable {
         this.channel = channel;
         this.request = request;
         this.future = future;
-        tasks.add(this);
     }
 
     private void complete(HttpResponse response) {
-        String contentType = response.getHeader("Content-Type");
-        if (contentType != null && response.getCharset() != null) {
-            response.setHeader("Content-Type", contentType + "; charset=" + response.getCharset());
+        CharSequence contentType = response.header(HttpHeaderNames.CONTENT_TYPE);
+        if (contentType != null && response.charset() != null) {
+            response.header(HttpHeaderNames.CONTENT_TYPE, contentType + "; charset=" + response.charset());
         }
-        response.setHeader("Content-Length", String.valueOf(response.getContentLength()));
-        response.setHeader("Server", "Spikedog/" + Spikedog.VERSION.get());
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.header(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(response.getContentLength()));
+        response.header(HttpHeaderNames.SERVER, "Spikedog/" + Spikedog.VERSION.get());
         try {
             future.complete(response);
         } catch (Throwable exception) {
@@ -54,9 +55,10 @@ public class ServeTask implements Runnable {
         for (Module module : ModuleLoader.getModules()) {
             for (Listener listener : module.listeners()) {
                 if (!listener.allowConnection(channel)) {
-                    HttpResponse response = new HttpResponse();
-                    response.setStatus(403, "Forbidden");
-                    response.setContent("<h1>403 Forbidden</h1>");
+                    HttpResponse response = new HttpResponse(request.version());
+                    response.status(HttpResponseStatus.FORBIDDEN);
+                    response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
+                    response.content("<h1>403 Forbidden</h1>");
                     complete(response);
                     return;
                 }
@@ -64,24 +66,24 @@ public class ServeTask implements Runnable {
         }
 
         String address = ((InetSocketAddress) channel.remoteAddress()).getHostString();
-        Spikedog.LOGGER.info(
-                "Received request from %s: %s %s".formatted(address, request.getMethod(), request.getPath()));
+        Spikedog.LOGGER.info("Request from %s: %s %s"
+                .formatted(address, request.method(), request.queryString().path()));
 
         // Search for servlet
         for (Spikedog.Servlet servlet : Spikedog.getServlets()) {
-            if (servlet.path().equals(request.getPath())
+            if (servlet.path().equals(request.queryString().path())
                     && (servlet.methods().length == 0
-                            || List.of(servlet.methods()).contains(request.getMethod()))) {
-                HttpResponse response = new HttpResponse();
+                            || List.of(servlet.methods()).contains(request.method()))) {
+                HttpResponse response = new HttpResponse(request.version());
                 try {
                     servlet.servlet().accept(request, response);
                     complete(response);
                 } catch (Throwable exception) {
                     exception.printStackTrace(System.err);
-                    response = new HttpResponse();
-                    response.setStatus(500, "Internal Server Error");
-                    response.setHeader("Content-Type", "text/html");
-                    response.setContent("<h1>500 Internal Server Error</h1>");
+                    response = new HttpResponse(request.version());
+                    response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+                    response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
+                    response.content("<h1>500 Internal Server Error</h1>");
                     complete(response);
                 }
                 return;
@@ -89,10 +91,10 @@ public class ServeTask implements Runnable {
         }
 
         // No servlet found
-        HttpResponse response = new HttpResponse();
-        response.setStatus(404, "Not Found");
-        response.setHeader("Content-Type", "text/html");
-        response.setContent("<h1>404 Not Found</h1>");
+        HttpResponse response = new HttpResponse(request.version());
+        response.status(HttpResponseStatus.NOT_FOUND);
+        response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
+        response.content("<h1>404 Not Found</h1>");
         complete(response);
     }
 

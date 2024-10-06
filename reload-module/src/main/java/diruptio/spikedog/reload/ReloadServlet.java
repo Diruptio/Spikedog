@@ -4,6 +4,9 @@ import diruptio.spikedog.HttpRequest;
 import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.Reload;
 import diruptio.spikedog.ServeTask;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.function.BiConsumer;
@@ -16,20 +19,20 @@ public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
             byte[] bytes = password.getBytes(StandardCharsets.UTF_8);
             String auth = "Basic " + Base64.getEncoder().encodeToString(bytes);
 
-            if (!auth.equals(request.getHeader("Authorization"))) {
+            CharSequence authorization = request.header(HttpHeaderNames.AUTHORIZATION);
+            if (authorization == null || !auth.contentEquals(authorization)) {
                 // Unauthorized
-                response.setStatus(401, "Unauthorized");
-                response.setHeader("Content-Type", "text/html");
-                response.setHeader("WWW-Authenticate", "Basic charset=\"UTF-8\"");
-                response.setContent("<h1>Unauthorized</h1>");
+                response.status(HttpResponseStatus.UNAUTHORIZED);
+                response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
+                response.header(HttpHeaderNames.WWW_AUTHENTICATE, "Basic charset=\"UTF-8\"");
+                response.content("<h1>Unauthorized</h1>");
                 return;
             }
         }
 
         // Authorized
-        response.setStatus(200, "OK");
-        response.setHeader("Content-Type", "text/html");
-        response.setContent("<h1>Reloading modules...</h1>");
+        response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
+        response.content("<h1>Reloading modules...</h1>");
 
         // Reload
         ServeTask task = ServeTask.getTaskByRequest(request);

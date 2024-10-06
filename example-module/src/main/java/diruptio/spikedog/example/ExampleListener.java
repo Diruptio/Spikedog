@@ -4,7 +4,10 @@ import diruptio.spikedog.Listener;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.Spikedog;
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
@@ -19,18 +22,12 @@ public class ExampleListener implements Listener {
         // Only POST servlet:
         // This servlet only accepts POST requests
         Spikedog.addServlet(
-                "/only-post",
-                (request, response) -> {
-                    response.setStatus(200, "OK");
-                    response.setHeader("Content-Type", "text/plain");
-                    response.setContent("This is a POST request");
-                },
-                "POST");
+                "/only-post", (request, response) -> response.content("This is a POST request"), HttpMethod.POST);
+
         // This servlet (with the same path) accepts all other requests
         Spikedog.addServlet("/only-post", (request, response) -> {
-            response.setStatus(405, "Method Not Allowed");
-            response.setHeader("Content-Type", "text/plain");
-            response.setContent("This endpoint only accepts POST requests");
+            response.status(HttpResponseStatus.METHOD_NOT_ALLOWED);
+            response.content().writeCharSequence("This endpoint only accepts POST requests", StandardCharsets.UTF_8);
         });
     }
 

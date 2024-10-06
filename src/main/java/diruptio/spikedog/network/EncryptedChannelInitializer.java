@@ -20,6 +20,6 @@ public class EncryptedChannelInitializer extends ChannelInitializer<SocketChanne
 
     @Override
     protected void initChannel(SocketChannel channel) {
-        channel.pipeline().addLast(sslContext.newHandler(channel.alloc()), new Http2OrHttpHandler());
+        channel.pipeline().addLast(sslContext.newHandler(channel.alloc()), new Http1OrHttp2Handler());
     }
 }

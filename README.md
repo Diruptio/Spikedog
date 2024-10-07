@@ -104,8 +104,9 @@ You can view the [example code](https://github.com/Diruptio/Spikedog/tree/main/e
    ```
 2. Create a Servlet
    ```java
-   public class ExampleServlet implements BiConsumer<HttpRequest, HttpResponse> {
-       public void accept(HttpRequest request, HttpResponse response) {
+   public class ExampleServlet {
+       @Endpoint(path = "/example")
+       public void handle(HttpRequest request, HttpResponse response) {
            response.content("Hello World!");
        }
    }
@@ -116,6 +117,6 @@ You can view the [example code](https://github.com/Diruptio/Spikedog/tree/main/e
    public void onLoad(Module self) {
        System.out.println("Loading example module");
        
-       Spikedog.addServlet("/example", new ExampleServlet());
+       Spikedog.register(new ExampleServlet());
    }
    ```

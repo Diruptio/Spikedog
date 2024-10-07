@@ -22,7 +22,7 @@ public class ReloadModule implements Listener {
             config.save();
         }
 
-        Spikedog.addServlet("/reload", new ReloadServlet());
+        Spikedog.register(new ReloadEndpoint());
     }
 
     public static Config getConfig() {

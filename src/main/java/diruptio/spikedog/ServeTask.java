@@ -6,7 +6,6 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +30,7 @@ public class ServeTask implements Runnable {
         this.channel = channel;
         this.request = request;
         this.future = future;
+        tasks.add(this);
     }
 
     private void complete(HttpResponse response) {
@@ -70,17 +70,16 @@ public class ServeTask implements Runnable {
                 .formatted(address, request.method(), request.queryString().path()));
 
         // Search for servlet
-        for (Spikedog.Servlet servlet : Spikedog.getServlets()) {
-            if (servlet.path().equals(request.queryString().path())
-                    && (servlet.methods().length == 0
-                            || List.of(servlet.methods()).contains(request.method()))) {
-                HttpResponse response = new HttpResponse(request.version());
+        for (EndpointProvider provider : Spikedog.getEndpointProviders()) {
+            HttpEndpoint endpoint = provider.getEndpoint(request.queryString().path(), request.method());
+            if (endpoint != null) {
                 try {
-                    servlet.servlet().accept(request, response);
+                    HttpResponse response = new HttpResponse(request.version());
+                    endpoint.handle(request, response);
                     complete(response);
                 } catch (Throwable exception) {
                     exception.printStackTrace(System.err);
-                    response = new HttpResponse(request.version());
+                    HttpResponse response = new HttpResponse(request.version());
                     response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
                     response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
                     response.content("<h1>500 Internal Server Error</h1>");

@@ -1,18 +1,17 @@
 package diruptio.spikedog.reload;
 
-import diruptio.spikedog.HttpRequest;
-import diruptio.spikedog.HttpResponse;
-import diruptio.spikedog.Reload;
-import diruptio.spikedog.ServeTask;
+import diruptio.spikedog.*;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.function.BiConsumer;
+import org.jetbrains.annotations.NotNull;
 
-public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
-    public void accept(HttpRequest request, HttpResponse response) {
+public class ReloadEndpoint implements HttpEndpoint {
+    @Endpoint(path = "/reload")
+    @Override
+    public void handle(@NotNull HttpRequest request, @NotNull HttpResponse response) {
         // Authorization
         if (ReloadModule.getConfig().getBoolean("authorization")) {
             String password = ":" + ReloadModule.getConfig().getString("password");
@@ -36,6 +35,6 @@ public class ReloadServlet implements BiConsumer<HttpRequest, HttpResponse> {
 
         // Reload
         ServeTask task = ServeTask.getTaskByRequest(request);
-        if (task != null) task.getFuture().thenRun(new Reload());
+        if (task != null) task.getFuture().thenRun(new ReloadTask());
     }
 }

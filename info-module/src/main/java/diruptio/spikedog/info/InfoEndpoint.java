@@ -1,7 +1,6 @@
 package diruptio.spikedog.info;
 
-import diruptio.spikedog.HttpRequest;
-import diruptio.spikedog.HttpResponse;
+import diruptio.spikedog.*;
 import diruptio.spikedog.Module;
 import diruptio.spikedog.ModuleLoader;
 import diruptio.spikedog.Spikedog;
@@ -13,10 +12,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.BiConsumer;
+import org.jetbrains.annotations.NotNull;
 
-public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
-    public void accept(HttpRequest request, HttpResponse response) {
+public class InfoEndpoint implements HttpEndpoint {
+    @Endpoint(path = "/info")
+    @Override
+    public void handle(@NotNull HttpRequest request, @NotNull HttpResponse response) {
         // Authorization
         if (InfoModule.getConfig().getBoolean("authorization")) {
             String password = ":" + InfoModule.getConfig().getString("password");
@@ -47,11 +48,12 @@ public class InfoServlet implements BiConsumer<HttpRequest, HttpResponse> {
         for (Module module : modules) {
             content.append("<li>").append(module.file().getFileName()).append("</li>");
         }
-        content.append("</ul><hr><b>Servlets:</b><ul>");
-        List<Spikedog.Servlet> servlets = new ArrayList<>(Spikedog.getServlets());
-        servlets.sort(Comparator.comparing(Spikedog.Servlet::path));
-        for (Spikedog.Servlet servlet : servlets) {
-            content.append("<li>").append(servlet.path()).append("</li>");
+        content.append("</ul><hr><b>Endpoints:</b><ul>");
+        List<Endpoint> endpoints = new ArrayList<>(
+                Spikedog.getDefaultEndpointProvider().getEndpoints().keySet());
+        endpoints.sort(Comparator.comparing(Endpoint::path));
+        for (Endpoint endpoint : endpoints) {
+            content.append("<li>").append(endpoint.path()).append("</li>");
         }
         content.append("</body>");
         content.append("</html>");

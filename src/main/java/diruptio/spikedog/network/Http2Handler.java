@@ -3,15 +3,17 @@ package diruptio.spikedog.network;
 import diruptio.spikedog.HttpRequest;
 import diruptio.spikedog.HttpResponse;
 import diruptio.spikedog.ServeTask;
-import diruptio.spikedog.Spikedog;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http2.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,32 +47,17 @@ public class Http2Handler extends ChannelDuplexHandler {
             @NotNull Http2HeadersFrame headersFrame,
             @Nullable Http2DataFrame dataFrame) {
         CompletableFuture<HttpResponse> future = new CompletableFuture<>();
-        HttpRequest request;
-        try {
-            request = new HttpRequest(headersFrame, dataFrame);
-        } catch (Throwable ignored) {
-            HttpResponse response = new HttpResponse("HTTP/2");
-            response.status(HttpResponseStatus.BAD_REQUEST);
-            response.content("<h1>400 Bad Request</h1>");
-            future.complete(response);
-            return;
-        }
-        ServeTask task = new ServeTask(ctx.channel(), request, future);
+        AtomicReference<ServeTask> task = new AtomicReference<>();
         future.thenAccept(response -> {
-            // Set response headers
-            String contentType = response.header("Content-Type");
-            if (contentType != null && response.charset() != null) {
-                response.header("Content-Type", contentType + "; charset=" + response.charset());
-            }
-            response.header("Content-Length", String.valueOf(response.getContentLength()));
-            response.header("Server", "Spikedog/" + Spikedog.VERSION.get());
-            response.header("Access-Control-Allow-Origin", "*");
+            // Response received
+            ServeTask.getTasks().remove(task.get());
 
             // Write headers
             DefaultHttp2Headers headers = new DefaultHttp2Headers();
             headers.status(response.status().codeAsText());
-            for (Map.Entry<String, String> entry : response.headers().entrySet()) {
-                headers.add(entry.getKey().toLowerCase(), entry.getValue());
+            for (Map.Entry<CharSequence, CharSequence> entry :
+                    response.headers().entrySet()) {
+                headers.add(entry.getKey().toString().toLowerCase(), entry.getValue());
             }
             ctx.write(new DefaultHttp2HeadersFrame(headers).stream(headersFrame.stream()));
 
@@ -81,14 +68,23 @@ public class Http2Handler extends ChannelDuplexHandler {
         });
         future.orTimeout(30, TimeUnit.SECONDS).thenRun(() -> {
             // Response timed out
-            // thread.interrupt();
+            ServeTask.getTasks().remove(task.get());
             HttpResponse response = new HttpResponse("HTTP/2");
             response.status(new HttpResponseStatus(522, "Connection Timed Out"));
-            response.header("Content-Type", "text/html");
+            response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
             response.content("<h1>522 Connection Timed Out</h1>");
             future.complete(response);
         });
-        task.run();
+        try {
+            task.set(new ServeTask(ctx.channel(), new HttpRequest(headersFrame, dataFrame), future));
+            ServeTask.getTasks().add(task.get());
+            task.get().run();
+        } catch (Throwable ignored) {
+            HttpResponse response = new HttpResponse("HTTP/2");
+            response.status(HttpResponseStatus.BAD_REQUEST);
+            response.content("<h1>400 Bad Request</h1>");
+            future.complete(response);
+        }
     }
 
     @Override

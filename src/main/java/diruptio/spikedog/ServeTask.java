@@ -1,6 +1,8 @@
 package diruptio.spikedog;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
@@ -32,13 +34,12 @@ public class ServeTask implements Runnable {
     }
 
     private void complete(HttpResponse response) {
-        String contentType = response.header("Content-Type");
+        CharSequence contentType = response.header(HttpHeaderNames.CONTENT_TYPE);
         if (contentType != null && response.charset() != null) {
-            response.header("Content-Type", contentType + "; charset=" + response.charset());
+            response.header(HttpHeaderNames.CONTENT_TYPE, contentType + "; charset=" + response.charset());
         }
-        response.header("Content-Length", String.valueOf(response.getContentLength()));
-        response.header("Server", "Spikedog/" + Spikedog.VERSION.get());
-        response.header("Access-Control-Allow-Origin", "*");
+        response.header(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(response.getContentLength()));
+        response.header(HttpHeaderNames.SERVER, "Spikedog/" + Spikedog.VERSION.get());
         try {
             future.complete(response);
         } catch (Throwable exception) {
@@ -56,7 +57,7 @@ public class ServeTask implements Runnable {
                 if (!listener.allowConnection(channel)) {
                     HttpResponse response = new HttpResponse(request.version());
                     response.status(HttpResponseStatus.FORBIDDEN);
-                    response.header("Content-Type", "text/html");
+                    response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
                     response.content("<h1>403 Forbidden</h1>");
                     complete(response);
                     return;
@@ -65,7 +66,7 @@ public class ServeTask implements Runnable {
         }
 
         String address = ((InetSocketAddress) channel.remoteAddress()).getHostString();
-        Spikedog.LOGGER.info("Received from %s: %s %s"
+        Spikedog.LOGGER.info("Request from %s: %s %s"
                 .formatted(address, request.method(), request.queryString().path()));
 
         // Search for servlet
@@ -80,7 +81,7 @@ public class ServeTask implements Runnable {
                     exception.printStackTrace(System.err);
                     HttpResponse response = new HttpResponse(request.version());
                     response.status(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-                    response.header("Content-Type", "text/html");
+                    response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
                     response.content("<h1>500 Internal Server Error</h1>");
                     complete(response);
                 }
@@ -91,7 +92,7 @@ public class ServeTask implements Runnable {
         // No servlet found
         HttpResponse response = new HttpResponse(request.version());
         response.status(HttpResponseStatus.NOT_FOUND);
-        response.header("Content-Type", "text/html");
+        response.header(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_HTML);
         response.content("<h1>404 Not Found</h1>");
         complete(response);
     }

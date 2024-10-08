@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.jetbrains:annotations:25.0.0")
+    compileOnly("org.jetbrains:annotations:26.0.0")
     implementation("io.netty:netty-all:4.1.114.Final")
     implementation("com.google.guava:guava:33.3.1-jre")
     implementation("com.google.code.gson:gson:2.11.0")

@@ -17,6 +17,7 @@ import io.netty.handler.ssl.*;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
@@ -131,7 +132,10 @@ public class Spikedog {
     public static void register(@NotNull Object object) {
         for (Method method : object.getClass().getMethods()) {
             Endpoint endpoint = method.getAnnotation(Endpoint.class);
-            if (endpoint != null) {
+            if (endpoint != null
+                    && method.getParameterCount() == 2
+                    && method.getParameterTypes()[0] == HttpRequest.class
+                    && method.getParameterTypes()[1] == HttpResponse.class) {
                 register(endpoint.path(), new RegisteredHttpEndpoint(method, object), endpoint.methods());
             }
         }
@@ -146,7 +150,13 @@ public class Spikedog {
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             for (ClassPath.ClassInfo classInfo : ClassPath.from(classLoader).getTopLevelClassesRecursive(packageName)) {
-                register(classInfo.load().getDeclaredConstructor().newInstance());
+                Class<?> clazz = classInfo.load();
+                for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+                    if (constructor.getParameterCount() == 0) {
+                        register(constructor.newInstance());
+                        break;
+                    }
+                }
             }
         } catch (IOException | ReflectiveOperationException e) {
             throw new RuntimeException(e);

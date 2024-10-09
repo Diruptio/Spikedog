@@ -5,7 +5,7 @@ plugins {
     id("application")
 }
 
-version = "2.0.0-beta.4"
+version = "2.0.0-beta.5"
 group = "diruptio"
 
 repositories {
@@ -60,6 +60,7 @@ tasks {
     jar {
         from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
         manifest.attributes["Implementation-Title"] = "Spikedog"
         manifest.attributes["Implementation-Version"] = version
         manifest.attributes["Main-Class"] = "diruptio.spikedog.Spikedog"

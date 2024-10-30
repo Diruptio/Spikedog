@@ -18,7 +18,7 @@ dependencies {
     implementation("com.google.guava:guava:33.3.1-jre")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.3")
-    runtimeOnly("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    runtimeOnly("org.bouncycastle:bcpkix-jdk18on:1.79")
 }
 
 spotless {

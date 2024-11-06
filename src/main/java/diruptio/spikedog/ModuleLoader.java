@@ -1,6 +1,8 @@
 package diruptio.spikedog;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -13,24 +15,24 @@ import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ModuleLoader {
     private static final List<Module> modules = new ArrayList<>();
 
-    public static void loadModules(@NotNull Path directory) throws IOException {
-        if (!Files.exists(directory)) Files.createDirectories(directory);
-        else if (!Files.isDirectory(directory)) throw new IOException(directory + " is not a directory");
-        try (Stream<Path> files = Files.list(directory)) {
-            List<Path> paths = sortPaths(directory, new ArrayList<>(files.toList()));
-            for (Path path : paths) {
-                if (Files.isDirectory(path) || !path.getFileName().toString().endsWith(".jar")) {
-                    continue;
-                }
-                try {
-                    modules.add(loadModule(path));
-                } catch (Throwable exception) {
-                    Spikedog.LOGGER.log(Level.SEVERE, "An error ocurred while loading " + directory, exception);
-                }
+    public static void loadModules(@Nullable Path loadOrderFile, @NotNull Stream<Path> fileStream) {
+        List<Path> files = new ArrayList<>(fileStream.toList());
+        if (loadOrderFile != null) {
+            files = sortPaths(loadOrderFile, files);
+        }
+        for (Path file : files) {
+            if (Files.isDirectory(file) || !file.getFileName().toString().endsWith(".jar")) {
+                continue;
+            }
+            try {
+                modules.add(loadModule(file));
+            } catch (Throwable exception) {
+                Spikedog.LOGGER.log(Level.SEVERE, "An error ocurred while loading " + file, exception);
             }
         }
         for (Module module : modules) {
@@ -49,11 +51,10 @@ public class ModuleLoader {
         }
     }
 
-    private static List<Path> sortPaths(@NotNull Path directory, @NotNull List<Path> paths) {
+    private static @NotNull List<Path> sortPaths(@NotNull Path loadOrderFile, @NotNull List<Path> paths) {
         List<String> order = new ArrayList<>();
-        Path orderFile = directory.resolve("order.txt");
-        if (Files.exists(orderFile) && Files.isRegularFile(orderFile)) {
-            try (Stream<String> lines = Files.lines(orderFile)) {
+        if (Files.exists(loadOrderFile) && Files.isRegularFile(loadOrderFile)) {
+            try (Stream<String> lines = Files.lines(loadOrderFile)) {
                 order.addAll(lines.toList());
             } catch (Throwable ignored) {
             }
@@ -72,8 +73,9 @@ public class ModuleLoader {
         return sorted;
     }
 
-    public static @NotNull Module loadModule(@NotNull Path file) throws IOException, ClassNotFoundException {
-        URL[] urls = {new URL("jar:file:" + file + "!/")};
+    public static @NotNull Module loadModule(@NotNull Path file)
+            throws IOException, ClassNotFoundException, URISyntaxException {
+        URL[] urls = {new URI("jar:file:" + file + "!/").toURL()};
         try (JarFile jarFile = new JarFile(file.toFile())) {
             ClassLoader parent = ClassLoader.getSystemClassLoader();
             ModuleClassLoader classLoader = new ModuleClassLoader(urls, parent);

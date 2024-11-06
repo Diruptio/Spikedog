@@ -1,5 +1,6 @@
 package diruptio.spikedog;
 
+import java.nio.file.Files;
 import java.util.logging.Level;
 
 /** A task to reload Spikedog. */
@@ -15,7 +16,8 @@ public class ReloadTask implements Runnable {
             Spikedog.getEndpointProviders().clear();
             ModuleLoader.unloadModules();
             Spikedog.getEndpointProviders().add(Spikedog.getDefaultEndpointProvider());
-            ModuleLoader.loadModules(Spikedog.MODULES_DIRECTORY);
+            ModuleLoader.loadModules(
+                    Spikedog.MODULES_DIRECTORY.resolve("order.txt"), Files.list(Spikedog.MODULES_DIRECTORY));
         } catch (Throwable exception) {
             Spikedog.LOGGER.log(Level.SEVERE, "Failed to reload modules", exception);
         }

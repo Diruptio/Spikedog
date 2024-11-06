@@ -18,11 +18,15 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.*;
+import java.util.stream.Stream;
 import javax.net.ssl.SSLException;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +37,9 @@ public class Spikedog {
     /** The version of Spikedog */
     public static final Supplier<String> VERSION = () -> BuildConstants.VERSION;
     /** The directory where modules are stored */
-    public static final Path MODULES_DIRECTORY = Path.of("modules");
+    public static Path MODULES_DIRECTORY = Path.of("modules");
+    /** A set of paths that will also load as modules */
+    public static Set<Path> ADDITIONAL_MODULES = new HashSet<>();
 
     private static final DefaultEndpointProvider defaultEndpointProvider = new DefaultEndpointProvider();
     private static final List<EndpointProvider> endpointProviders = Lists.newArrayList(defaultEndpointProvider);
@@ -81,9 +87,11 @@ public class Spikedog {
             LOGGER.info("Spikedog listens on " + url);
 
             // Load modules
+            Stream<Path> modules = ADDITIONAL_MODULES.stream();
             if (loadModules) {
-                ModuleLoader.loadModules(MODULES_DIRECTORY);
+                modules = Stream.concat(modules, Files.list(MODULES_DIRECTORY));
             }
+            ModuleLoader.loadModules(MODULES_DIRECTORY.resolve("order.txt"), modules);
 
             channel.closeFuture().sync();
             group.shutdownGracefully();

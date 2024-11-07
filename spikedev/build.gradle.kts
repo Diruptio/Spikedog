@@ -13,8 +13,8 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        create("spikedev") {
-            id = "diruptio.spikedog.spikedev"
+        register("spikedev") {
+            id = "spikedev"
             implementationClass = "diruptio.spikedog.spikedev.Spikedev"
         }
     }
@@ -33,7 +33,6 @@ tasks {
         manifest.attributes["Implementation-Title"] = "Spikedev"
         manifest.attributes["Implementation-Version"] = version
         manifest.attributes["Implementation-Vendor"] = "Diruptio"
-        archiveBaseName = "Spikedev"
         isZip64 = true
     }
 }
@@ -46,12 +45,6 @@ publishing {
                 username = (System.getenv("DIRUPTIO_MAVEN_USERNAME") ?: project.findProperty("maven_username") ?: "").toString()
                 password = (System.getenv("DIRUPTIO_MAVEN_PASSWORD") ?: project.findProperty("maven_password") ?: "").toString()
             }
-        }
-    }
-    publications {
-        create<MavenPublication>("maven") {
-            artifactId = "Spikedev"
-            from(components["java"])
         }
     }
 }

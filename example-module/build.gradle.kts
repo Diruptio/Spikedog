@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("spikedev") version "2.0.0-beta.7.3"
 }
 
 repositories {

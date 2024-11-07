@@ -4,6 +4,7 @@ import diruptio.spikedog.Spikedog;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Objects;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -17,8 +18,9 @@ import org.jetbrains.annotations.NotNull;
 public class RunSpikedogTask extends DefaultTask {
     private @Input TaskProvider<Task> from;
 
-    protected RunSpikedogTask(@NotNull Project target) {
-        setGroup("spikedev");
+    @Inject
+    public RunSpikedogTask(@NotNull Project target) {
+        setGroup("Spikedev");
         Property<Integer> port = new DefaultProperty<>(PropertyHost.NO_OP, Integer.class);
         port.set(8080);
         Property<String> bindAddress = new DefaultProperty<>(PropertyHost.NO_OP, String.class);
@@ -32,12 +34,16 @@ public class RunSpikedogTask extends DefaultTask {
         getExtensions().add("useSsl", useSsl);
         getExtensions().add("loadModules", loadModules);
         doLast(t -> {
-            Spikedog.MODULES_DIRECTORY = target.file("run/modules").toPath();
-            Spikedog.ADDITIONAL_MODULES = new HashSet<>();
-            for (File file : from.get().getOutputs().getFiles()) {
-                Spikedog.ADDITIONAL_MODULES.add(file.toPath());
+            try {
+                Spikedog.MODULES_DIRECTORY = target.file("run/modules").toPath();
+                Spikedog.ADDITIONAL_MODULES = new HashSet<>();
+                for (File file : from.get().getOutputs().getFiles()) {
+                    Spikedog.ADDITIONAL_MODULES.add(file.toPath());
+                }
+                Spikedog.listen(port.get(), bindAddress.get(), useSsl.get(), loadModules.get());
+            } catch (Exception e) {
+                new Exception("1", e).printStackTrace(System.err);
             }
-            Spikedog.listen(port.get(), bindAddress.get(), useSsl.get(), loadModules.get());
         });
     }
 

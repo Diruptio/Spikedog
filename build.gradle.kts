@@ -29,7 +29,7 @@ spotless {
     }
     java {
         target("**/src/**/*.java")
-        palantirJavaFormat("2.48.0").formatJavadoc(true)
+        palantirJavaFormat("2.50.0").formatJavadoc(true)
         removeUnusedImports()
         indentWithSpaces()
         endWithNewline()
@@ -81,7 +81,7 @@ application {
 
 publishing {
     repositories {
-        maven("https://repo.diruptio.de/repository/maven-public-releases/") {
+        maven("https://repo.diruptio.de/repository/maven-public-releases") {
             name = "DiruptioPublic"
             credentials {
                 username = (System.getenv("DIRUPTIO_MAVEN_USERNAME") ?: project.findProperty("maven_username") ?: "").toString()

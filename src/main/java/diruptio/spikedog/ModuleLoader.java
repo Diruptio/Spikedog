@@ -1,6 +1,8 @@
 package diruptio.spikedog;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -15,12 +17,13 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleLoader {
+    private static Stream<Path> extraModules = Stream.empty();
     private static final List<Module> modules = new ArrayList<>();
 
-    public static void loadModules(@NotNull Path directory) throws IOException {
+    public static void loadModules(final @NotNull Path directory) throws IOException {
         if (!Files.exists(directory)) Files.createDirectories(directory);
         else if (!Files.isDirectory(directory)) throw new IOException(directory + " is not a directory");
-        try (Stream<Path> files = Files.list(directory)) {
+        try (Stream<Path> files = Stream.concat(extraModules, Files.list(directory))) {
             List<Path> paths = sortPaths(directory, new ArrayList<>(files.toList()));
             for (Path path : paths) {
                 if (Files.isDirectory(path) || !path.getFileName().toString().endsWith(".jar")) {
@@ -73,7 +76,12 @@ public class ModuleLoader {
     }
 
     public static @NotNull Module loadModule(@NotNull Path file) throws IOException, ClassNotFoundException {
-        URL[] urls = {new URL("jar:file:" + file + "!/")};
+        URL[] urls;
+        try {
+            urls = new URL[] {new URI("jar:file:" + file + "!/").toURL()};
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
         try (JarFile jarFile = new JarFile(file.toFile())) {
             ClassLoader parent = ClassLoader.getSystemClassLoader();
             ModuleClassLoader classLoader = new ModuleClassLoader(urls, parent);
@@ -122,6 +130,10 @@ public class ModuleLoader {
             Spikedog.LOGGER.info("Unloaded module " + module.file().getFileName());
         }
         modules.clear();
+    }
+
+    public static void setExtraModules(final @NotNull Stream<Path> extraModules) {
+        ModuleLoader.extraModules = extraModules;
     }
 
     public static @NotNull List<Module> getModules() {

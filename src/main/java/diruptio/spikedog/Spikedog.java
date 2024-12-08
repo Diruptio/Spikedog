@@ -24,6 +24,7 @@ import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.*;
+import java.util.stream.Stream;
 import javax.net.ssl.SSLException;
 import org.apache.commons.cli.*;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,7 @@ public class Spikedog {
         int port;
         boolean useSsl;
         boolean loadModules;
+        String[] extraModules;
         Options options = new Options();
         options.addOption(
                 Option.builder().option("h").longOpt("help").desc("Show help").build());
@@ -82,6 +84,13 @@ public class Spikedog {
                 .argName("true/false")
                 .desc("Whether to load modules (default: true)")
                 .build());
+        options.addOption(Option.builder()
+                .option("e")
+                .longOpt("extra-module")
+                .hasArg()
+                .argName("file")
+                .desc("File to load as modules (even if load-modules is false)")
+                .build());
         try {
             CommandLine commandLine = new DefaultParser().parse(options, args);
             if (commandLine.hasOption("help")) {
@@ -89,14 +98,20 @@ public class Spikedog {
                 return;
             }
             bindAddress = commandLine.getOptionValue("host", "0.0.0.0");
-            port = Integer.parseInt(commandLine.getParsedOptionValue("port", "8080"));
-            useSsl = Boolean.parseBoolean(commandLine.getParsedOptionValue("use-ssl", "false"));
-            loadModules = Boolean.parseBoolean(commandLine.getParsedOptionValue("load-modules", "true"));
-        } catch (ParseException exception) {
+            port = Integer.parseInt(commandLine.getOptionValue("port", "8080"));
+            useSsl = Boolean.parseBoolean(commandLine.getOptionValue("use-ssl", "false"));
+            loadModules = Boolean.parseBoolean(commandLine.getOptionValue("load-modules", "true"));
+            extraModules = commandLine.getOptionValues("extra-module");
+        } catch (ParseException | NumberFormatException ignored) {
             new HelpFormatter().printHelp("Spikedog.jar [OPTIONS]", options);
             return;
         }
-        listen(bindAddress, port, useSsl, loadModules);
+        listen(
+                bindAddress,
+                port,
+                useSsl,
+                loadModules,
+                extraModules == null ? Stream.empty() : Stream.of(extraModules).map(Path::of));
     }
 
     private Spikedog() {}
@@ -109,8 +124,14 @@ public class Spikedog {
      * @param useSsl Whether to use SSL. If {@code true}, a self-signed SSL certificate will be created to encrypt
      *     connections, and HTTP 2 will be supported. Otherwise, only HTTP 1 will be supported.
      * @param loadModules Whether to load modules from the modules directory
+     * @param extraModules Files to load as modules (even if loadModules is {@code false})
      */
-    public static void listen(@NotNull String bindAddress, int port, boolean useSsl, boolean loadModules) {
+    public static void listen(
+            final @NotNull String bindAddress,
+            final int port,
+            final boolean useSsl,
+            final boolean loadModules,
+            final @NotNull Stream<Path> extraModules) {
         try {
             // Start server
             EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
@@ -130,6 +151,8 @@ public class Spikedog {
             url.append("://").append(bindAddress);
             if (useSsl ? port != 443 : port != 80) url.append(":").append(port);
             LOGGER.info("Spikedog listens on " + url);
+
+            ModuleLoader.setExtraModules(extraModules);
 
             // Load modules
             if (loadModules) {

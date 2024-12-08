@@ -21,10 +21,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.*;
-import java.util.stream.Stream;
 import javax.net.ssl.SSLException;
 import org.apache.commons.cli.*;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public class Spikedog {
         int port;
         boolean useSsl;
         boolean loadModules;
-        String[] extraModules;
+        List<Path> extraModules = new ArrayList<>();
         Options options = new Options();
         options.addOption(
                 Option.builder().option("h").longOpt("help").desc("Show help").build());
@@ -101,17 +101,16 @@ public class Spikedog {
             port = Integer.parseInt(commandLine.getOptionValue("port", "8080"));
             useSsl = Boolean.parseBoolean(commandLine.getOptionValue("use-ssl", "false"));
             loadModules = Boolean.parseBoolean(commandLine.getOptionValue("load-modules", "true"));
-            extraModules = commandLine.getOptionValues("extra-module");
+            if (commandLine.hasOption("extra-module")) {
+                for (String str : commandLine.getOptionValues("extra-module")) {
+                    extraModules.add(Path.of(str));
+                }
+            }
         } catch (ParseException | NumberFormatException ignored) {
             new HelpFormatter().printHelp("Spikedog.jar [OPTIONS]", options);
             return;
         }
-        listen(
-                bindAddress,
-                port,
-                useSsl,
-                loadModules,
-                extraModules == null ? Stream.empty() : Stream.of(extraModules).map(Path::of));
+        listen(bindAddress, port, useSsl, loadModules, extraModules);
     }
 
     private Spikedog() {}
@@ -131,7 +130,7 @@ public class Spikedog {
             final int port,
             final boolean useSsl,
             final boolean loadModules,
-            final @NotNull Stream<Path> extraModules) {
+            final @NotNull List<Path> extraModules) {
         try {
             // Start server
             EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();
@@ -152,7 +151,7 @@ public class Spikedog {
             if (useSsl ? port != 443 : port != 80) url.append(":").append(port);
             LOGGER.info("Spikedog listens on " + url);
 
-            ModuleLoader.setExtraModules(extraModules);
+            ModuleLoader.getExtraModules().addAll(extraModules);
 
             // Load modules
             if (loadModules) {

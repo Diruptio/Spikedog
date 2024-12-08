@@ -30,7 +30,7 @@ spotless {
     }
     java {
         target("**/src/**/*.java")
-        palantirJavaFormat("2.48.0").formatJavadoc(true)
+        palantirJavaFormat("2.50.0").formatJavadoc(true)
         removeUnusedImports()
         indentWithSpaces()
         endWithNewline()

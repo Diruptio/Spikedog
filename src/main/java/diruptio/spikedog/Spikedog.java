@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.*;
 import javax.net.ssl.SSLException;
+import org.apache.commons.cli.*;
 import org.jetbrains.annotations.NotNull;
 
 /** The main class of Spikedog */
@@ -46,7 +47,56 @@ public class Spikedog {
      */
     public static void main(String[] args) {
         LOGGER.setLevel(Level.INFO);
-        listen(8080, "0.0.0.0", true, true);
+        String bindAddress;
+        int port;
+        boolean useSsl;
+        boolean loadModules;
+        Options options = new Options();
+        options.addOption(
+                Option.builder().option("h").longOpt("help").desc("Show help").build());
+        options.addOption(Option.builder()
+                .option("b")
+                .longOpt("bind-address")
+                .hasArg()
+                .argName("address")
+                .desc("The bind address (default: 0.0.0.0)")
+                .build());
+        options.addOption(Option.builder()
+                .option("p")
+                .longOpt("port")
+                .hasArg()
+                .argName("port")
+                .desc("The port (default: 8080)")
+                .build());
+        options.addOption(Option.builder()
+                .option("s")
+                .longOpt("use-ssl")
+                .hasArg()
+                .argName("true/false")
+                .desc("Whether to use ssl (default: true)")
+                .build());
+        options.addOption(Option.builder()
+                .option("l")
+                .longOpt("load-modules")
+                .hasArg()
+                .argName("true/false")
+                .desc("Whether to load modules (default: true)")
+                .build());
+        try {
+            CommandLine commandLine = new DefaultParser().parse(options, args);
+            if (commandLine.hasOption("help")) {
+                new HelpFormatter().printHelp("Spikedog.jar [OPTIONS]", options);
+                return;
+            }
+            bindAddress = commandLine.getOptionValue("host", "0.0.0.0");
+            port = Integer.parseInt(commandLine.getParsedOptionValue("port", "8080"));
+            useSsl = Boolean.parseBoolean(commandLine.getParsedOptionValue("use-ssl", "false"));
+            loadModules = Boolean.parseBoolean(commandLine.getParsedOptionValue("load-modules", "true"));
+        } catch (ParseException exception) {
+            new HelpFormatter().printHelp("Spikedog.jar [OPTIONS]", options);
+            return;
+        }
+        listen(bindAddress, port, useSsl, loadModules);
     }
 
     private Spikedog() {}
@@ -54,13 +104,13 @@ public class Spikedog {
     /**
      * Starts the server and listens for incoming connections.
      *
-     * @param port The port to listen on
      * @param bindAddress The address to bind to
-     * @param useSsl Whether to use SSL. If true, a self-signed SSL certificate will be created to encrypt connections
-     *     and HTTP 2 will be supported. Otherwise, only HTTP 1 will be supported.
+     * @param port The port to listen on
+     * @param useSsl Whether to use SSL. If {@code true}, a self-signed SSL certificate will be created to encrypt
+     *     connections, and HTTP 2 will be supported. Otherwise, only HTTP 1 will be supported.
      * @param loadModules Whether to load modules from the modules directory
      */
-    public static void listen(int port, @NotNull String bindAddress, boolean useSsl, boolean loadModules) {
+    public static void listen(@NotNull String bindAddress, int port, boolean useSsl, boolean loadModules) {
         try {
             // Start server
             EventLoopGroup group = Epoll.isAvailable() ? new EpollEventLoopGroup() : new NioEventLoopGroup();

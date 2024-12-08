@@ -123,7 +123,14 @@ public class ModuleLoader {
     }
 
     public static void unloadModules() throws IOException {
-        modules.forEach(module -> module.listeners().forEach(Listener::onUnload));
+        for (Module module : modules) {
+            try {
+                module.listeners().forEach(Listener::onUnload);
+            } catch (Throwable exception) {
+                Spikedog.LOGGER.log(
+                        Level.SEVERE, "Failed to unload module " + module.file().getFileName());
+            }
+        }
         modules.forEach(module -> module.listeners().clear());
         for (Module module : modules) {
             module.classLoader().close();

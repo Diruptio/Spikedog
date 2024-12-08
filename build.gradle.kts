@@ -5,7 +5,7 @@ plugins {
     id("application")
 }
 
-version = "2.0.0-beta.6"
+version = "2.0.0-beta.7"
 group = "diruptio"
 
 repositories {
@@ -18,6 +18,7 @@ dependencies {
     implementation("com.google.guava:guava:33.3.1-jre")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.3")
+    implementation("commons-cli:commons-cli:1.9.0")
     runtimeOnly("org.bouncycastle:bcpkix-jdk18on:1.79")
 }
 
@@ -81,7 +82,7 @@ application {
 
 publishing {
     repositories {
-        maven("https://repo.diruptio.de/repository/maven-public-releases/") {
+        maven("https://repo.diruptio.de/repository/maven-public-releases") {
             name = "DiruptioPublic"
             credentials {
                 username = (System.getenv("DIRUPTIO_MAVEN_USERNAME") ?: project.findProperty("maven_username") ?: "").toString()

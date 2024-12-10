@@ -191,7 +191,7 @@ public class HttpRequest {
      * @return The content as a string
      */
     public @NotNull String contentAsString() {
-        return content.toString();
+        return content.toString(StandardCharsets.UTF_8);
     }
 
     private void decodeParameters(String parameters, HttpRequest request) {

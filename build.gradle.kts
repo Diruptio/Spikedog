@@ -5,7 +5,7 @@ plugins {
     id("application")
 }
 
-version = "2.0.0-beta.9"
+version = "2.0.0-beta.10"
 group = "diruptio"
 
 repositories {

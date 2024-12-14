@@ -42,7 +42,7 @@ public class HttpRequest {
         }
         version = request.protocolVersion().text();
         for (Map.Entry<String, String> header : request.headers()) {
-            headers.put(header.getKey(), header.getValue());
+            headers.put(header.getKey().toLowerCase(), header.getValue());
         }
         content = Unpooled.wrappedUnmodifiableBuffer(request.content());
         parameters = queryString.parameters;
@@ -75,7 +75,8 @@ public class HttpRequest {
                 .headers()
                 .iterator()
                 .forEachRemaining(header -> headers.put(
-                        header.getKey().toString(), header.getValue().toString()));
+                        header.getKey().toString().toLowerCase(),
+                        header.getValue().toString()));
         if (dataFrame == null) {
             content = Unpooled.directBuffer(0);
         } else {
@@ -132,7 +133,7 @@ public class HttpRequest {
      * @return The header value, or {@code null} if not found
      */
     public @Nullable CharSequence header(@NotNull CharSequence key) {
-        return headers.get(key);
+        return headers.get(key.toString().toLowerCase());
     }
 
     /**
@@ -143,7 +144,7 @@ public class HttpRequest {
      * @return The header value, or the default value if not found
      */
     public @NotNull CharSequence header(@NotNull CharSequence key, @NotNull CharSequence defaultValue) {
-        return headers.getOrDefault(key, defaultValue);
+        return headers.getOrDefault(key.toString().toLowerCase(), defaultValue);
     }
 
     /**

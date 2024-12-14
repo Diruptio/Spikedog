@@ -34,11 +34,16 @@ jobs:
           DIRUPTIO_MAVEN_USERNAME: ${{ secrets.DIRUPTIO_MAVEN_USERNAME }}
           DIRUPTIO_MAVEN_PASSWORD: ${{ secrets.DIRUPTIO_MAVEN_PASSWORD }}
         run: ./gradlew publish --stacktrace
-      - name: Upload to Diruptio projects
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Create Diruptio projects version (pre-release)
+        if: 'github.event.release.prerelease'
         run: |
-          curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" "https://api.diruptio.de/project/version/create?project=spikedog&version=${{ github.ref_name }}&tags="
-          cat build/libs/Spikedog.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=Spikedog.jar"
-          cat info-module/build/libs/info-module.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=info-module.jar"
-          cat reload-module/build/libs/reload-module.jar | curl -X GET -H "Content-Type: text/plain" -H "${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=reload-module.jar"
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: ${{ secrets.AUTHORIZATION_HEADER }}" -d "{"project":"spikedog","name":"${{ github.ref_name }}","tags":["pre-release"],"gitCommit":"${{ github.sha }}"}" "https://api.diruptio.de/project/version/create"
+      - name: Create Diruptio projects version (release)
+        if: '!github.event.release.prerelease'
+        run: |
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: ${{ secrets.AUTHORIZATION_HEADER }}" -d "{"project":"spikedog","name":"${{ github.ref_name }}","tags":["release"],"gitCommit":"${{ github.sha }}"}" "https://api.diruptio.de/project/version/create"
+      - name: Upload to Diruptio projects
+        run: |
+          cat build/libs/Spikedog.jar | curl -X POST -H "Authorization: ${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=Spikedog.jar"
+          cat info-module/build/libs/info-module.jar | curl -X POST -H "Authorization: ${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=info-module.jar"
+          cat reload-module/build/libs/reload-module.jar | curl -X POST -H "Authorization: ${{ secrets.AUTHORIZATION_HEADER }}" --data @- "https://api.diruptio.de/project/version/upload?project=spikedog&version=${{ github.ref_name }}&file=reload-module.jar"

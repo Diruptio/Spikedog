@@ -25,7 +25,7 @@ public class HttpResponse {
      */
     public HttpResponse(@NotNull String version) {
         this.version = version;
-        headers.put("Content-Type", "text/plain");
+        headers.put("content-type", "text/plain");
     }
 
     /**
@@ -80,7 +80,7 @@ public class HttpResponse {
      * @return The header value, or {@code null} if not found
      */
     public @Nullable CharSequence header(@NotNull CharSequence name) {
-        return headers.get(name);
+        return headers.get(name.toString().toLowerCase());
     }
 
     /**
@@ -90,7 +90,7 @@ public class HttpResponse {
      * @param value The header value
      */
     public void header(@NotNull CharSequence name, @NotNull CharSequence value) {
-        headers.put(name, value);
+        headers.put(name.toString().toLowerCase(), value);
     }
 
     /**

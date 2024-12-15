@@ -33,6 +33,7 @@ public class Http1Handler extends SimpleChannelInboundHandler<FullHttpRequest> {
             // Write response
             FullHttpResponse nettyResponse =
                     new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, response.status(), response.content());
+            response.headers().forEach(nettyResponse.headers()::set);
             ctx.writeAndFlush(nettyResponse).addListener(ChannelFutureListener.CLOSE);
         });
         future.orTimeout(30, TimeUnit.SECONDS).thenRun(() -> {

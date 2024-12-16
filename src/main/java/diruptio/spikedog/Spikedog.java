@@ -38,8 +38,6 @@ public class Spikedog {
     /** The directory where modules are stored */
     public static final Path MODULES_DIRECTORY = Path.of("modules");
 
-    public static int MAX_CONTENT_LENGTH = 1024 * 1024 * 1024; // 1GB
-
     private static final DefaultEndpointProvider defaultEndpointProvider = new DefaultEndpointProvider();
     private static final List<EndpointProvider> endpointProviders = Lists.newArrayList(defaultEndpointProvider);
 

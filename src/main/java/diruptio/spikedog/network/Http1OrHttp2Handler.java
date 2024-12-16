@@ -1,6 +1,5 @@
 package diruptio.spikedog.network;
 
-import diruptio.spikedog.Spikedog;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -24,10 +23,7 @@ public class Http1OrHttp2Handler extends ApplicationProtocolNegotiationHandler {
             ctx.pipeline().addLast(Http2FrameCodecBuilder.forServer().build(), new Http2Handler());
         } else if (ApplicationProtocolNames.HTTP_1_1.equals(protocol)) {
             ctx.pipeline()
-                    .addLast(
-                            new HttpServerCodec(),
-                            new HttpObjectAggregator(Spikedog.MAX_CONTENT_LENGTH),
-                            new Http1Handler());
+                    .addLast(new HttpServerCodec(), new HttpObjectAggregator(Integer.MAX_VALUE), new Http1Handler());
         } else {
             throw new IllegalStateException("Unknown protocol: " + protocol);
         }

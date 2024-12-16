@@ -1,6 +1,5 @@
 package diruptio.spikedog.network;
 
-import diruptio.spikedog.Spikedog;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -21,7 +20,7 @@ public class UnencryptedChannelInitializer extends ChannelInitializer<SocketChan
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, HttpMessage msg) {
                 ctx.pipeline().addAfter(ctx.name(), null, new Http1Handler());
-                ctx.pipeline().replace(this, null, new HttpObjectAggregator(Spikedog.MAX_CONTENT_LENGTH));
+                ctx.pipeline().replace(this, null, new HttpObjectAggregator(Integer.MAX_VALUE));
                 ctx.fireChannelRead(msg);
             }
         });

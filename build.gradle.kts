@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     compileOnly("org.jetbrains:annotations:26.0.1")
-    implementation("io.netty:netty-all:4.1.115.Final")
+    implementation("io.netty:netty-all:4.1.116.Final")
     implementation("com.google.guava:guava:33.3.1-jre")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.3")

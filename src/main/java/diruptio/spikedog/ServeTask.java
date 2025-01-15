@@ -3,9 +3,12 @@ package diruptio.spikedog;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +71,24 @@ public class ServeTask implements Runnable {
         String address = ((InetSocketAddress) channel.remoteAddress()).getHostString();
         Spikedog.LOGGER.info("Request from %s: %s %s"
                 .formatted(address, request.method(), request.queryString().path()));
+
+        if (request.method() == HttpMethod.OPTIONS) {
+            List<String> methods = new ArrayList<>();
+            for (EndpointProvider provider : Spikedog.getEndpointProviders()) {
+                for (String method : List.of("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT")) {
+                    if (provider.getEndpoint(request.queryString().path(), HttpMethod.valueOf(method)) != null) {
+                        methods.add(method);
+                    }
+                }
+            }
+
+            HttpResponse response = new HttpResponse(request.version());
+            response.status(HttpResponseStatus.NO_CONTENT);
+            response.header(HttpHeaderNames.ALLOW, String.join(", ", methods));
+            response.header(HttpHeaderNames.CONTENT_LENGTH, "0");
+            complete(response);
+            return;
+        }
 
         // Search for servlet
         for (EndpointProvider provider : Spikedog.getEndpointProviders()) {

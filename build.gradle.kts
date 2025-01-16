@@ -19,7 +19,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.yaml:snakeyaml:2.3")
     implementation("commons-cli:commons-cli:1.9.0")
-    runtimeOnly("org.bouncycastle:bcpkix-jdk18on:1.79")
+    runtimeOnly("org.bouncycastle:bcpkix-jdk18on:1.80")
 }
 
 spotless {

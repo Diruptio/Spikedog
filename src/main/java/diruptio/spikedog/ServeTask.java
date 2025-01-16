@@ -81,11 +81,11 @@ public class ServeTask implements Runnable {
                     }
                 }
             }
-
             HttpResponse response = new HttpResponse(request.version());
             response.status(HttpResponseStatus.NO_CONTENT);
             response.header(HttpHeaderNames.ALLOW, String.join(", ", methods));
             response.header(HttpHeaderNames.CONTENT_LENGTH, "0");
+            response.header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, String.join(", ", methods));
             complete(response);
             return;
         }
